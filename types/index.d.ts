@@ -138,7 +138,7 @@ declare type NewDwollaCustomerParams = {
 
 declare interface CreditCardProps {
   account: Account;
-  userName: string;
+  username: string;
   showBalance?: boolean;
 }
 
@@ -218,7 +218,7 @@ declare interface RightSidebarProps {
   banks: Bank[] & Account[];
 }
 
-declare interface SiderbarProps {
+declare interface SidebarProps {
   user: User;
 }
 
