@@ -8,14 +8,14 @@ declare type SearchParamProps = {
 // ========================================
 
 declare type SignUpParams = {
-  firstName: string;
-  lastName: string;
-  address1: string;
-  city: string;
-  state: string;
-  postalCode: string;
-  dateOfBirth: string;
-  ssn: string;
+  firstName?: string;
+  lastName?: string;
+  address1?: string;
+  city?: string;
+  county?: string;
+  postcode?: string;
+  dateOfBirth?: string;
+  nationalInsuranceNumber?: string;
   email: string;
   password: string;
 };
@@ -33,12 +33,13 @@ declare type User = {
   dwollaCustomerId: string;
   firstName: string;
   lastName: string;
+  name: string;
   address1: string;
   city: string;
-  state: string;
-  postalCode: string;
+  county: string;
+  postcode: string;
   dateOfBirth: string;
-  ssn: string;
+  nationalInsuranceNumber: string;
 };
 
 declare type NewUserParams = {
@@ -130,10 +131,10 @@ declare type NewDwollaCustomerParams = {
   type: string;
   address1: string;
   city: string;
-  state: string;
+  county: string;
   postalCode: string;
   dateOfBirth: string;
-  ssn: string;
+  nationalInsuranceNumber: string;
 };
 
 declare interface CreditCardProps {
@@ -210,6 +211,7 @@ declare interface TotlaBalanceBoxProps {
 
 declare interface FooterProps {
   user: User;
+  type?: 'mobile' | 'desktop'
 }
 
 declare interface RightSidebarProps {
