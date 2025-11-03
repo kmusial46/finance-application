@@ -10,16 +10,19 @@ const RightSidebar = ({user, transactions, banks}: RightSidebarProps) => {
             <div className='profile'>
                 <div className='profile-img'>
                     <span className='text-5xl font-bold text-blue-500'>
-                        {user.name[0]}
+                        {
+                          // Safely access firstName initial; fall back to first letter of name, else empty
+                          user?.firstName?.[0] ?? user?.name?.split(' ')[0]?.[0] ?? ''
+                        }
                     </span>
                 </div>
 
                 <div className='profile-details'>
                     <h1 className='profile-name'>
-                        {user.firstName} {user.lastName}
+                        {user?.firstName ?? user?.name?.split(' ')[0] ?? ''} {user?.lastName ?? user?.name?.split(' ')[1] ?? ''}
                     </h1>
                     <p className='profile-email'>
-                        {user.email}
+                        {user?.email ?? ''}
                     </p>
                 </div>
             </div>
