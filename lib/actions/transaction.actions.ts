@@ -34,6 +34,11 @@ export const getTransactionsByBankId = async ({bankId}: getTransactionsByBankIdP
   try {
     const { database } = await createAdminClient();
 
+    if (!DATABASE_ID || !TRANSACTION_COLLECTION_ID) {
+      console.log('Appwrite database or transaction collection ID missing; returning empty transaction list');
+      return parseStringify({ total: 0, documents: [] });
+    }
+
     const senderTransactions = await database.listDocuments(
       DATABASE_ID!,
       TRANSACTION_COLLECTION_ID!,
@@ -57,5 +62,6 @@ export const getTransactionsByBankId = async ({bankId}: getTransactionsByBankIdP
     return parseStringify(transactions);
   } catch (error) {
     console.log(error);
+    return parseStringify({ total: 0, documents: [] });
   }
 }

@@ -1,4 +1,4 @@
-import RecentTransactions from '@/components/ui/transactions';
+import RecentTransactions from '@/components/ui/recent-transactions';
 import HeaderBox from '@/components/ui/header-box';
 import RightSidebar from '@/components/ui/right-sidebar';
 import TotalBalanceBox from '@/components/ui/total-balance-box';

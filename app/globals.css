@@ -240,7 +240,11 @@
 
   /* Category Badge */
   .category-badge {
-    @apply flex-center truncate w-fit gap-1 rounded-2xl border-[1.5px] py-[2px] pl-1.5 pr-2;
+    /* Allow category badges to wrap and constrain their width so long names
+       don't get cut off. Remove `truncate` and `w-fit` so the badge can
+       grow to the available width and wrap text onto multiple lines when
+       necessary. */
+    @apply flex-center gap-1 rounded-2xl border-[1.5px] py-[2px] pl-1.5 pr-2 max-w-[140px] break-words;
   }
 
   .banktab-item {

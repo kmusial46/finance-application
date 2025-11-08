@@ -58,22 +58,29 @@ export const formatDateTime = (dateString: Date) => {
     timeOptions
   );
 
+  // Prevent the meridiem (AM/PM) from wrapping onto a new line by using a
+  // non-breaking space between the time and the day period. This avoids
+  // cases where only "AM" or "PM" appears on a second line in the UI.
+  const formattedDateTimeNoBreak = formattedDateTime
+    .replace(" AM", "\u00A0AM")
+    .replace(" PM", "\u00A0PM");
+
+  const formattedTimeNoBreak = formattedTime
+    .replace(" AM", "\u00A0AM")
+    .replace(" PM", "\u00A0PM");
+
   return {
-    dateTime: formattedDateTime,
+    dateTime: formattedDateTimeNoBreak,
     dateDay: formattedDateDay,
     dateOnly: formattedDate,
-    timeOnly: formattedTime,
+    timeOnly: formattedTimeNoBreak,
   };
 };
 
-export function formatAmount(amount: number): string {
-  const locale = navigator.language || "en-GB";  // detect user locale
-  const currency = new Intl.NumberFormat(locale, { style: "currency", currency: "GBP" })
-                    .resolvedOptions().currency; // optionally detect or default
-
+export function formatAmount(amount: number, currency = "GBP", locale = "en-GB"): string {
   const formatter = new Intl.NumberFormat(locale, {
     style: "currency",
-    currency: currency,
+    currency,
     minimumFractionDigits: 2,
   });
 

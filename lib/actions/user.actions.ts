@@ -283,13 +283,13 @@ export const getBank = async ({ documentId }: getBankProps) => {
             return null
         }
 
-        const bank = await database.listDocuments(
+        const bank = await database.getDocument(
             DATABASE_ID!,
             BANK_COLLECTION_ID!,
-            [Query.equal('$id', documentId)]
+            documentId
         )
 
-        return parseStringify(bank.documents)
+        return parseStringify(bank)
     } catch (error) {
         console.error('Error getting banks:', error)
         return parseStringify({ error: String(error) })

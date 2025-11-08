@@ -92,22 +92,88 @@ export const topCategoryStyles = {
 };
 
 export const transactionCategoryStyles = {
-  "Food and Drink": {
+  "Loan Payments": {
+    borderColor: "border-blue-600",
+    backgroundColor: "bg-blue-500",
+    textColor: "text-blue-700",
+    chipBackgroundColor: "bg-inherit",
+  },
+  "Government And Non Profit": {
+    borderColor: "border-purple-600",
+    backgroundColor: "bg-purple-500",
+    textColor: "text-purple-700",
+    chipBackgroundColor: "bg-inherit",
+  },
+  "Transfer Out": {
+    borderColor: "border-gray-600",
+    backgroundColor: "bg-gray-500",
+    textColor: "text-gray-700",
+    chipBackgroundColor: "bg-inherit",
+  },
+  "General Merchandise": {
+    borderColor: "border-emerald-600",
+    backgroundColor: "bg-emerald-500",
+    textColor: "text-emerald-700",
+    chipBackgroundColor: "bg-inherit",
+  },
+  "Personal Care": {
     borderColor: "border-pink-600",
     backgroundColor: "bg-pink-500",
     textColor: "text-pink-700",
     chipBackgroundColor: "bg-inherit",
   },
-  Payment: {
-    borderColor: "border-success-600",
-    backgroundColor: "bg-green-600",
-    textColor: "text-success-700",
+  "Medical": {
+    borderColor: "border-sky-600",
+    backgroundColor: "bg-sky-500",
+    textColor: "text-sky-700",
+    chipBackgroundColor: "bg-inherit",
+  },
+  "Entertainment": {
+    borderColor: "border-orange-600",
+    backgroundColor: "bg-orange-500",
+    textColor: "text-orange-700",
+    chipBackgroundColor: "bg-inherit",
+  },
+  "Home Improvement": {
+    borderColor: "border-violet-600",
+    backgroundColor: "bg-violet-500",
+    textColor: "text-violet-700",
+    chipBackgroundColor: "bg-inherit",
+  },
+  "General Services": {
+    borderColor: "border-amber-600",
+    backgroundColor: "bg-amber-500",
+    textColor: "text-amber-700",
     chipBackgroundColor: "bg-inherit",
   },
   "Bank Fees": {
-    borderColor: "border-success-600",
-    backgroundColor: "bg-green-600",
-    textColor: "text-success-700",
+    borderColor: "border-red-600",
+    backgroundColor: "bg-red-500",
+    textColor: "text-red-700",
+    chipBackgroundColor: "bg-inherit",
+  },
+  "Income": {
+    borderColor: "border-green-600",
+    backgroundColor: "bg-green-500",
+    textColor: "text-green-700",
+    chipBackgroundColor: "bg-inherit",
+  },
+  "Transportation": {
+    borderColor: "border-cyan-600",
+    backgroundColor: "bg-cyan-500",
+    textColor: "text-cyan-700",
+    chipBackgroundColor: "bg-inherit",
+  },
+  "Rent And Utilities": {
+    borderColor: "border-lime-600",
+    backgroundColor: "bg-lime-500",
+    textColor: "text-lime-700",
+    chipBackgroundColor: "bg-inherit",
+  },
+  "Food And Drink": {
+    borderColor: "border-pink-600",
+    backgroundColor: "bg-pink-500",
+    textColor: "text-pink-700",
     chipBackgroundColor: "bg-inherit",
   },
   Transfer: {

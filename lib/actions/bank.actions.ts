@@ -13,6 +13,17 @@ import { parseStringify } from "../utils";
 import { getTransactionsByBankId } from "./transaction.actions";
 import { getBanks, getBank } from "./user.actions";
 
+const formatTransactionCategory = (rawCategory?: string | null) => {
+  if (!rawCategory) return "General";
+
+  return rawCategory
+    .toString()
+    .toLowerCase()
+    .split(/[_\s-]+/)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
+
 // Get multiple bank accounts
 export const getAccounts = async ({ userId }: getAccountsProps) => {
   try {
@@ -94,7 +105,7 @@ export const getAccount = async ({ appwriteItemId }: getAccountProps) => {
 
     // get account info from plaid
     const accountsResponse = await plaidClient.accountsGet({
-      access_token: bank?.accessToken,
+      access_token: accessToken,
     });
     const accountData = accountsResponse.data.accounts[0];
 
@@ -103,15 +114,21 @@ export const getAccount = async ({ appwriteItemId }: getAccountProps) => {
       bankId: bank.$id,
     });
 
-    const transferTransactions = transferTransactionsData.documents.map(
+    const transferDocuments = Array.isArray(transferTransactionsData?.documents)
+      ? transferTransactionsData.documents
+      : [];
+
+    const transferTransactions = transferDocuments.map(
       (transferData: Transaction) => ({
         id: transferData.$id,
         name: transferData.name!,
         amount: transferData.amount!,
         date: transferData.$createdAt,
         paymentChannel: transferData.channel,
-        category: transferData.category,
+        category: formatTransactionCategory(transferData.category),
         type: transferData.senderBankId === bank.$id ? "debit" : "credit",
+        senderBankId: transferData.senderBankId,
+        receiverBankId: transferData.receiverBankId,
       })
     );
 
@@ -120,9 +137,17 @@ export const getAccount = async ({ appwriteItemId }: getAccountProps) => {
       institutionId: accountsResponse.data.item.institution_id!,
     });
 
-    const transactions = await getTransactions({
-      accessToken: bank?.accessToken,
+    const plaidTransactions = await getTransactions({
+      accessToken,
     });
+
+    const transactions = Array.isArray(plaidTransactions)
+      ? plaidTransactions
+      : [];
+
+    if (!Array.isArray(plaidTransactions)) {
+      console.warn("getTransactions returned non-array payload", plaidTransactions);
+    }
 
     const account = {
       id: accountData.account_id,
@@ -183,33 +208,75 @@ export const getTransactions = async ({
   accessToken,
 }: getTransactionsProps) => {
   let hasMore = true;
-  let transactions: any = [];
+  let cursor: string | undefined;
+  const transactions: any[] = [];
 
   try {
     // Iterate through each page of new transaction updates for item
     while (hasMore) {
-      const response = await plaidClient.transactionsSync({
-        access_token: accessToken,
-      });
+      let attempt = 0;
+      const maxAttempts = 3;
 
-      const data = response.data;
+      while (true) {
+        try {
+          const response = await plaidClient.transactionsSync({
+            access_token: accessToken,
+            cursor,
+          });
 
-      transactions = response.data.added.map((transaction) => ({
-        id: transaction.transaction_id,
-        name: transaction.name,
-        paymentChannel: transaction.payment_channel,
-        type: transaction.payment_channel,
-        accountId: transaction.account_id,
-        amount: transaction.amount,
-        pending: transaction.pending,
-        category: transaction.category ? transaction.category[0] : "",
-        date: transaction.date,
-        image: transaction.logo_url,
-      }));
+          const data = response.data;
 
-      hasMore = data.has_more;
+          transactions.push(
+            ...data.added.map((transaction) => ({
+              id: transaction.transaction_id,
+              name: transaction.name,
+              paymentChannel: transaction.payment_channel,
+              // Plaid's transaction.amount is positive for debits (money out) and
+              // negative for credits (money in). Use the sign to normalise type.
+              type: typeof transaction.amount === 'number' && transaction.amount > 0 ? 'debit' : 'credit',
+              accountId: transaction.account_id,
+              amount: transaction.amount,
+              pending: transaction.pending,
+              category: formatTransactionCategory(
+                transaction.personal_finance_category?.primary ??
+                  transaction.category?.[0]
+              ),
+              date: transaction.date,
+              image: transaction.logo_url,
+            }))
+          );
+
+          cursor = data.next_cursor ?? cursor;
+          hasMore = data.has_more;
+          break;
+        } catch (error) {
+          attempt += 1;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const e: any = error;
+          const status = e?.response?.status;
+
+          if (status === 429 && attempt <= maxAttempts) {
+            const retryAfterHeader = e?.response?.headers?.["retry-after"];
+            const retryAfterSeconds = retryAfterHeader
+              ? Number(retryAfterHeader)
+              : attempt;
+            const retryDelayMs = Number.isFinite(retryAfterSeconds)
+              ? retryAfterSeconds * 1000
+              : attempt * 1000;
+
+            await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
+            continue;
+          }
+
+          console.error(
+            "An error occurred while getting the accounts:",
+            e?.response?.data ?? e
+          );
+
+          return parseStringify([]);
+        }
+      }
     }
-
     return parseStringify(transactions);
   } catch (error) {
     console.error("An error occurred while getting the accounts:", error);
