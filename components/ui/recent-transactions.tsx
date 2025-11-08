@@ -1,8 +1,9 @@
-import { Link } from 'lucide-react'
+import Link from 'next/link'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { BankTabItem } from './bank-tab-item'
 import BankInfo from './bank-info'
 import TransactionsTable from './transactions-table'
+import { Pagination } from './pagination'
 
 const RecentTransactions = ({
     accounts,
@@ -10,47 +11,64 @@ const RecentTransactions = ({
     appwriteItemId,
     page=1,
 }: RecentTransactionsProps) => {
+    const rowsPerPage = 10
+    const totalPages = Math.ceil(transactions.length / rowsPerPage)
+
+    const indexOfLastTransaction = page * rowsPerPage;
+    const indexOfFirstTransaction = indexOfLastTransaction - rowsPerPage;
+    const currentTransactions = transactions.slice(indexOfFirstTransaction, indexOfLastTransaction);
+
   return (
     <section className='recent-transactions'>
         <header className='flex items-center justify-between'>
             <h2 className='recent-transactions-label'>
                 Recent Transactions
             </h2>
-            <Link href={`/transaction-history/?id=${appwriteItemId}`}>
+            <Link href={`/transaction-history/?id=${appwriteItemId}`}
+                className='view-all-btn'>
                 View All
             </Link>
         </header>
-        <Tabs defaultValue={appwriteItemId} className="w-full">
-            <TabsList className='recent-transactions-tablist'>
-                {accounts?.map((account: Account) => (
-                    <TabsTrigger 
-                        key={account.appwriteItemId} 
-                        value={account.appwriteItemId}
-                    >
-                        <BankTabItem 
-                            key={account.id}
-                            account={account}
-                            appwriteItemId={appwriteItemId}
-                        />
-                    </TabsTrigger>
-                ))}
-            </TabsList>
+        <Tabs value={appwriteItemId} className="w-full">
+        <TabsList className='recent-transactions-tablist'>
             {accounts?.map((account: Account) => (
-                <TabsContent 
-                    key={account.id}
+                <TabsTrigger 
+                    key={account.appwriteItemId} 
                     value={account.appwriteItemId}
-                    className='space-y-4'
                 >
-                    <BankInfo
+                    <BankTabItem 
+                        key={account.id}
                         account={account}
                         appwriteItemId={appwriteItemId}
-                        type="full"
                     />
-                    <TransactionsTable
-                        transactions={transactions}
-                    />
-                </TabsContent>
+                </TabsTrigger>
             ))}
+        </TabsList>
+        {accounts?.map((account: Account) => (
+            <TabsContent 
+                key={account.id}
+                value={account.appwriteItemId}
+                className='space-y-4'
+            >
+                <BankInfo
+                    account={account}
+                    appwriteItemId={appwriteItemId}
+                    type="full"
+                />
+                <TransactionsTable
+                    transactions={currentTransactions}
+                />
+
+                {totalPages > 1 && (
+                    <div className='my-4 w-full'>
+                        <Pagination
+                            totalPages={totalPages}
+                            page={page}
+                        />
+                    </div>
+                )}
+            </TabsContent>
+        ))}
         </Tabs>
     </section>
   )

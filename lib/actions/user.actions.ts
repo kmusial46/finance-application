@@ -141,11 +141,35 @@ export const logoutAccount = async () => {
     }
 }
 
-export const createLinkToken = async (user: User) => {
+export const createLinkToken = async (user: User | Partial<User> | null | undefined) => {
     try {
+        if (!user) {
+            throw new Error('Missing user context while creating Plaid link token')
+        }
+
+        const clientUserId = user.$id ?? user.userId
+
+        if (!clientUserId) {
+            throw new Error('User record is missing an id for Plaid link token creation')
+        }
+
+        const derivedClientName = (() => {
+            const nameParts = [user.firstName, user.lastName].filter((part) => typeof part === 'string' && part.trim().length > 0)
+
+            if (nameParts.length > 0) {
+                return nameParts.join(' ')
+            }
+
+            if (typeof user.name === 'string' && user.name.trim().length > 0) {
+                return user.name.trim()
+            }
+
+            return 'Aureon User'
+        })()
+
         const tokenParams = {
-            user: { client_user_id: user.$id },
-            client_name: `${user.firstName} ${user.lastName}`,
+            user: { client_user_id: clientUserId },
+            client_name: derivedClientName,
             products: ['auth'] as Products[],
             language: 'en',
             country_codes: ['GB'] as CountryCode[]

@@ -50,46 +50,254 @@ export const ITEMS = [
 ];
 
 export const topCategoryStyles = {
-  "Food and Drink": {
-    bg: "bg-blue-25",
-    circleBg: "bg-blue-100",
-    text: {
-      main: "text-blue-900",
-      count: "text-blue-700",
-    },
-    progress: {
-      bg: "bg-blue-100",
-      indicator: "bg-blue-700",
-    },
-    icon: "/icons/monitor.svg",
-  },
-  Travel: {
-    bg: "bg-success-25",
-    circleBg: "bg-success-100",
-    text: {
-      main: "text-success-900",
-      count: "text-success-700",
-    },
-    progress: {
-      bg: "bg-success-100",
-      indicator: "bg-success-700",
-    },
-    icon: "/icons/coins.svg",
-  },
-  default: {
+  "Food And Drink": {
     bg: "bg-pink-25",
     circleBg: "bg-pink-100",
     text: {
-      main: "text-pink-900",
-      count: "text-pink-700",
+      main: "text-pink-700",
+      count: "text-pink-600"
     },
     progress: {
       bg: "bg-pink-100",
-      indicator: "bg-pink-700",
+      indicator: "bg-pink-500"
     },
-    icon: "/icons/shopping-bag.svg",
+    icon: "/icons/food.svg"
   },
-};
+  "Loan Payments": {
+    bg: "bg-blue-25",
+    circleBg: "bg-blue-100",
+    text: {
+      main: "text-blue-700",
+      count: "text-blue-600"
+    },
+    progress: {
+      bg: "bg-blue-100",
+      indicator: "bg-blue-500"
+    },
+    icon: "/icons/loan.svg"
+  },
+  "Government And Non Profit": {
+    bg: "bg-purple-25",
+    circleBg: "bg-purple-100",
+    text: {
+      main: "text-purple-700",
+      count: "text-purple-600"
+    },
+    progress: {
+      bg: "bg-purple-100",
+      indicator: "bg-purple-500"
+    },
+    icon: "/icons/government.svg"
+  },
+  "Transfer Out": {
+    bg: "bg-gray-25",
+    circleBg: "bg-gray-100",
+    text: {
+      main: "text-gray-700",
+      count: "text-gray-600"
+    },
+    progress: {
+      bg: "bg-gray-100",
+      indicator: "bg-gray-500"
+    },
+    icon: "/icons/transfer-out.svg"
+  },
+  "General Merchandise": {
+    bg: "bg-emerald-25",
+    circleBg: "bg-emerald-100",
+    text: {
+      main: "text-emerald-700",
+      count: "text-emerald-600"
+    },
+    progress: {
+      bg: "bg-emerald-100",
+      indicator: "bg-emerald-500"
+    },
+    icon: "/icons/shopping.svg"
+  },
+  "Personal Care": {
+    bg: "bg-pink-25",
+    circleBg: "bg-pink-100",
+    text: {
+      main: "text-pink-700",
+      count: "text-pink-600"
+    },
+    progress: {
+      bg: "bg-pink-100",
+      indicator: "bg-pink-500"
+    },
+    icon: "/icons/personal-care.svg"
+  },
+  "Medical": {
+    bg: "bg-sky-25",
+    circleBg: "bg-sky-100",
+    text: {
+      main: "text-sky-700",
+      count: "text-sky-600"
+    },
+    progress: {
+      bg: "bg-sky-100",
+      indicator: "bg-sky-500"
+    },
+    icon: "/icons/medical.svg"
+  },
+  "Entertainment": {
+    bg: "bg-orange-25",
+    circleBg: "bg-orange-100",
+    text: {
+      main: "text-orange-700",
+      count: "text-orange-600"
+    },
+    progress: {
+      bg: "bg-orange-100",
+      indicator: "bg-orange-500"
+    },
+    icon: "/icons/entertainment.svg"
+  },
+  "Home Improvement": {
+    bg: "bg-violet-25",
+    circleBg: "bg-violet-100",
+    text: {
+      main: "text-violet-700",
+      count: "text-violet-600"
+    },
+    progress: {
+      bg: "bg-violet-100",
+      indicator: "bg-violet-500"
+    },
+    icon: "/icons/furniture.svg"
+  },
+  "General Services": {
+    bg: "bg-amber-25",
+    circleBg: "bg-amber-100",
+    text: {
+      main: "text-amber-700",
+      count: "text-amber-600"
+    },
+    progress: {
+      bg: "bg-amber-100",
+      indicator: "bg-amber-500"
+    },
+    icon: "/icons/services.svg"
+  },
+  "Bank Fees": {
+    bg: "bg-red-25",
+    circleBg: "bg-red-100",
+    text: {
+      main: "text-red-700",
+      count: "text-red-600"
+    },
+    progress: {
+      bg: "bg-red-100",
+      indicator: "bg-red-500"
+    },
+    icon: "/icons/bank.svg"
+  },
+  "Income": {
+    bg: "bg-green-25",
+    circleBg: "bg-green-100",
+    text: {
+      main: "text-green-700",
+      count: "text-green-600"
+    },
+    progress: {
+      bg: "bg-green-100",
+      indicator: "bg-green-500"
+    },
+    icon: "/icons/income.svg"
+  },
+  "Transfer In": {
+    bg: "bg-green-25",
+    circleBg: "bg-green-100",
+    text: {
+      main: "text-green-700",
+      count: "text-green-600"
+    },
+    progress: {
+      bg: "bg-green-100",
+      indicator: "bg-green-500"
+    },
+    icon: "/icons/transfer-in.svg"
+  },
+  "Transportation": {
+    bg: "bg-cyan-25",
+    circleBg: "bg-cyan-100",
+    text: {
+      main: "text-cyan-700",
+      count: "text-cyan-600"
+    },
+    progress: {
+      bg: "bg-cyan-100",
+      indicator: "bg-cyan-500"
+    },
+    icon: "/icons/transport.svg"
+  },
+  "Rent And Utilities": {
+    bg: "bg-lime-25",
+    circleBg: "bg-lime-100",
+    text: {
+      main: "text-lime-700",
+      count: "text-lime-600"
+    },
+    progress: {
+      bg: "bg-lime-100",
+      indicator: "bg-lime-500"
+    },
+    icon: "/icons/rent.svg"
+  },
+  "Transfer": {
+    bg: "bg-red-25",
+    circleBg: "bg-red-100",
+    text: {
+      main: "text-red-700",
+      count: "text-red-600"
+    },
+    progress: {
+      bg: "bg-red-100",
+      indicator: "bg-red-700"
+    },
+    icon: "/icons/transfer.svg"
+  },
+  "Processing": {
+    bg: "bg-[#F2F4F7]",
+    circleBg: "bg-gray-100",
+    text: {
+      main: "text-[#344054]",
+      count: "text-[#344054]"
+    },
+    progress: {
+      bg: "bg-gray-100",
+      indicator: "bg-gray-500"
+    },
+    icon: "/icons/processing.svg"
+  },
+  "Success": {
+    bg: "bg-[#ECFDF3]",
+    circleBg: "bg-emerald-100",
+    text: {
+      main: "text-[#027A48]",
+      count: "text-[#027A48]"
+    },
+    progress: {
+      bg: "bg-emerald-100",
+      indicator: "bg-[#12B76A]"
+    },
+    icon: "/icons/success.svg"
+  },
+  "default": {
+    bg: "bg-blue-25",
+    circleBg: "bg-blue-100",
+    text: {
+      main: "text-blue-700",
+      count: "text-blue-600"
+    },
+    progress: {
+      bg: "bg-blue-100",
+      indicator: "bg-blue-500"
+    },
+    icon: "/icons/default.svg"
+  }
+}
 
 export const transactionCategoryStyles = {
   "Loan Payments": {
@@ -153,6 +361,12 @@ export const transactionCategoryStyles = {
     chipBackgroundColor: "bg-inherit",
   },
   "Income": {
+    borderColor: "border-green-600",
+    backgroundColor: "bg-green-500",
+    textColor: "text-green-700",
+    chipBackgroundColor: "bg-inherit",
+  },
+  "Transfer In": {
     borderColor: "border-green-600",
     backgroundColor: "bg-green-500",
     textColor: "text-green-700",

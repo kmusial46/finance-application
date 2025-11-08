@@ -17,7 +17,7 @@ import PlaidLink from "./plaid-link"
 
 const AuthForm = ({type}: {type:string}) => {
     const router = useRouter()
-    const [user, setUser] = useState(null)
+    const [user, setUser] = useState<User | null>(null)
     const [isLoading, setIsLoading] = useState(false)
 
     const formSchema = authFormSchema(type)
@@ -35,23 +35,32 @@ const AuthForm = ({type}: {type:string}) => {
         setIsLoading(true)
         
         try {
-            const userData = {
-                firstName: data.firstName!,
-                lastName: data.lastName!,
-                address1: data.address1!,
-                city: data.city!,
-                county: data.county!,
-                postcode: data.postcode!,
-                dateOfBirth: data.dateOfBirth!,
-                nationalInsuranceNumber: data.nationalInsuranceNumber!,
-                email: data.email!,
-                password: data.password!
-            }
-
             if(type === 'sign-up') {
-                const newUser = await signUp(userData)
+                const userProfile = {
+                    firstName: data.firstName!,
+                    lastName: data.lastName!,
+                    address1: data.address1!,
+                    city: data.city!,
+                    county: data.county!,
+                    postcode: data.postcode!,
+                    dateOfBirth: data.dateOfBirth!,
+                    nationalInsuranceNumber: data.nationalInsuranceNumber!,
+                    email: data.email!,
+                }
 
-                setUser(newUser)
+                const newUser = await signUp({
+                    ...userProfile,
+                    password: data.password!
+                })
+
+                if (newUser?.$id) {
+                    setUser({
+                        ...userProfile,
+                        $id: newUser.$id,
+                        userId: newUser.$id,
+                        name: newUser.name ?? `${userProfile.firstName} ${userProfile.lastName}`
+                    })
+                }
             }
             if(type === 'sign-in') {
                 const response = await signIn({
