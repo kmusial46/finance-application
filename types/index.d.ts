@@ -61,6 +61,18 @@ declare type Account = {
   sharableId: string;
 };
 
+declare type Investment = {
+  $id: string;
+  ownerAccountId?: string;
+  symbol: string;
+  name: string;
+  pricePerShare: number;
+  shareCount: number;
+  notes?: string;
+  $createdAt: string;
+  $updatedAt: string;
+};
+
 declare type Transaction = {
   id: string;
   $id: string;
@@ -155,15 +167,6 @@ declare interface PlaidLinkProps {
   user: User;
   variant?: "primary" | "ghost";
 }
-
-// declare type User = sdk.Models.Document & {
-//   accountId: string;
-//   email: string;
-//   name: string;
-//   items: string[];
-//   accessToken: string;
-//   image: string;
-// };
 
 declare interface AuthFormProps {
   type: "sign-in" | "sign-up";
@@ -296,4 +299,20 @@ declare interface getBankProps {
 
 declare interface getBankByAccountIdProps {
   accountId: string;
+}
+
+declare interface CreateInvestmentProps {
+  userId: string;
+  input: string;
+  shareCount: number;
+  notes?: string | null;
+}
+
+declare interface GetInvestmentsProps {
+  userId: string;
+}
+
+declare interface DeleteInvestmentProps {
+  investmentId: string;
+  userId: string;
 }

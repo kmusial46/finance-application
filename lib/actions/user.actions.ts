@@ -175,11 +175,7 @@ export const createLinkToken = async (user: User | Partial<User> | null | undefi
             country_codes: ['GB'] as CountryCode[]
         }
 
-        console.log('Plaid createLinkToken - tokenParams:', JSON.stringify(tokenParams))
-
-        const response = await plaidClient.linkTokenCreate(tokenParams)
-
-        console.log('Plaid createLinkToken - response:', response?.data)
+    const response = await plaidClient.linkTokenCreate(tokenParams)
 
         return parseStringify({ linkToken: response.data.link_token })
     } catch (error) {

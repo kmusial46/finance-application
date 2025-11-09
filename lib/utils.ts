@@ -218,3 +218,26 @@ export const authFormSchema = (type: string) => z.object({
   dateOfBirth: type === 'sign-in' ? z.string().optional() : z.string(),
   nationalInsuranceNumber: type === 'sign-in' ? z.string().optional() : z.string().min(9).max(9)
 });
+
+const isNumericString = (value: string) => {
+  const normalized = value.replace(/,/g, "").trim();
+  if (!normalized) return false;
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) && parsed > 0;
+};
+
+export const investmentFormSchema = z
+  .object({
+    query: z
+      .string()
+      .trim()
+      .min(2, "Enter at least 2 characters.")
+      .max(80, "Query must be 80 characters or fewer."),
+    shareCount: z
+      .string()
+      .trim()
+      .min(1, "Share count is required.")
+      .refine(isNumericString, "Enter a valid share count greater than 0.")
+      .transform((value) => value.replace(/,/g, "")),
+  })
+  .strict();

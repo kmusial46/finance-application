@@ -5,7 +5,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
+} from "@/components/ui/investments-table"
 import { transactionCategoryStyles } from "@/constants"
 import { cn, formatAmount, formatDateTime, getTransactionStatus, removeSpecialCharacters } from "@/lib/utils"
 
@@ -61,7 +61,7 @@ const TransactionsTable = ({ transactions }: TransactionTableProps) => {
                 'transition-colors duration-150'
                 )}
             >
-              <TableCell className="max-w-[120px] md:max-w-[250px] pl-2 pr-4">
+              <TableCell className="max-w-[110px] md:max-w-[230px] pl-2 pr-4">
                 <div className="flex items-center gap-3">
                   <h1 className="text-14 truncate font-semibold text-[#344054]">
                     {removeSpecialCharacters(t.name)}

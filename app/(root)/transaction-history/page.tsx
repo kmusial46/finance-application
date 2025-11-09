@@ -5,7 +5,10 @@ import { getLoggedInUser } from "@/lib/actions/user.actions"
 import { formatAmount } from "@/lib/utils";
 import { Pagination } from "@/components/ui/pagination";
 
-const TransactionHistory = async ({searchParams: {id, page}}: SearchParamProps) => {
+const TransactionHistory = async ({searchParams}: SearchParamProps) => {
+  const id = searchParams?.id;
+  const page = searchParams?.page;
+
   const currentPage = Number(page as string) || 1;
   const loggedIn = await getLoggedInUser();
   const accounts = await getAccounts({userId: loggedIn.$id});
