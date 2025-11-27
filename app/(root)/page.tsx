@@ -12,12 +12,23 @@ const Home = async ({ searchParams }: SearchParamProps) => {
     const loggedIn = await getLoggedInUser();
     const accounts = await getAccounts({userId: loggedIn.$id});
 
-    if(!accounts) return
+    if (!accounts || (accounts as any)?.error) {
+        try {
+            console.error('getAccounts error:', JSON.stringify((accounts as any)?.error, null, 2));
+        } catch (e) {
+            console.error('getAccounts error (non-serialisable):', (accounts as any)?.error);
+        }
+        return null;
+    }
 
-    const accountsData = accounts?.data;
-    const appwriteItemId = (id as string) || accountsData[0]?.appwriteItemId;
+    const accountsData = Array.isArray(accounts?.data) ? accounts.data : [];
+    const appwriteItemId = typeof id === 'string' && id.length > 0
+        ? id
+        : accountsData[0]?.appwriteItemId;
 
-    const account = await getAccount({ appwriteItemId });
+    const account = appwriteItemId
+        ? await getAccount({ appwriteItemId })
+        : null;
 
     if (account?.error) {
         try {

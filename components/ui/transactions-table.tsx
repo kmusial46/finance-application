@@ -71,7 +71,7 @@ const TransactionsTable = ({ transactions }: TransactionTableProps) => {
 
               <TableCell
                 className={cn(
-                  "pl-2 pr-4 font-medium text-right w-[90px] md:w-auto",
+                  "pl-2 pr-4 font-medium text-right w-[90px] md:w-auto whitespace-nowrap",
                   isDebit ? "text-rose-600" : isCredit ? "text-emerald-600" : "text-gray-600"
                 )}
               >

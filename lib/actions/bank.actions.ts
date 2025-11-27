@@ -78,6 +78,11 @@ export const getAccounts = async ({ userId }: getAccountsProps) => {
 // Get one bank account
 export const getAccount = async ({ appwriteItemId }: getAccountProps) => {
   try {
+    if (!appwriteItemId) {
+      console.error('getAccount: appwriteItemId missing');
+      return parseStringify({ error: { error_code: 'MISSING_FIELDS', error_message: 'appwriteItemId is required' } });
+    }
+
     // get bank from db
     const bank = await getBank({ documentId: appwriteItemId });
 
@@ -85,6 +90,11 @@ export const getAccount = async ({ appwriteItemId }: getAccountProps) => {
     if (!bank) {
       console.error(`getAccount: bank not found for id ${appwriteItemId}`);
       return parseStringify({ error: { error_message: `Bank not found for id ${appwriteItemId}` } });
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if ((bank as any)?.error) {
+      return parseStringify({ error: (bank as any).error });
     }
 
     // Support different field names that might be present in the DB

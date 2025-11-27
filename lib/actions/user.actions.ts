@@ -203,9 +203,20 @@ export const createBankAccount = async ({
 
         console.log('createBankAccount - using DATABASE_ID:', DATABASE_ID, 'BANK_COLLECTION_ID:', BANK_COLLECTION_ID)
 
+        const documentId = (() => {
+            if (typeof bankId === 'string' && /^[a-zA-Z0-9._-]{1,36}$/.test(bankId)) {
+                return bankId
+            }
+
+            if (typeof bankId === 'string' && bankId.length > 0) {
+                console.warn('Bank Plaid item id not suitable as Appwrite document id, falling back to unique id')
+            }
+
+            return ID.unique()
+        })()
+
         const payload = {
             userId,
-            bankId,
             accountId,
             accessToken,
             fundingSourceUrl,
@@ -216,7 +227,7 @@ export const createBankAccount = async ({
         const bankAccount = await database.createDocument(
             DATABASE_ID!,
             BANK_COLLECTION_ID!,
-            ID.unique(),
+            documentId,
             payload
         )
 

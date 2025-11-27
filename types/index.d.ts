@@ -95,7 +95,6 @@ declare type Transaction = {
 declare type Bank = {
   $id: string;
   accountId: string;
-  bankId: string;
   accessToken: string;
   fundingSourceUrl: string;
   userId: string;
@@ -232,9 +231,68 @@ declare interface DoughnutChartProps {
   accounts: Account[];
 }
 
-declare interface PaymentTransferFormProps {
-  accounts: Account[];
+declare interface CategoryBadgeProps {
+  category: string;
 }
+
+declare type GoalType = "manual" | "linked";
+declare type GoalStatus = "active" | "completed" | "archived";
+
+declare type Goal = {
+  $id: string;
+  userId: string;
+  name: string;
+  targetAmount: number;
+  currentAmount: number;
+  targetDate?: string;
+  type: GoalType;
+  linkedAccountId?: string;
+  linkedBankId?: string;
+  status: GoalStatus;
+  $createdAt: string;
+  $updatedAt: string;
+};
+
+declare type GoalTransaction = {
+  $id: string;
+  goalId: string;
+  userId: string;
+  amount: number;
+  date: string;
+  notes?: string;
+  $createdAt: string;
+};
+
+declare type CreateGoalParams = {
+  userId: string;
+  name: string;
+  targetAmount: number;
+  currentAmount?: number;
+  targetDate?: string;
+  type: GoalType;
+  linkedAccountId?: string;
+  linkedBankId?: string;
+  status?: GoalStatus;
+};
+
+declare type CreateGoalTransactionParams = {
+  goalId: string;
+  userId: string;
+  amount: number;
+  date: string;
+  notes?: string;
+};
+
+declare type UpdateGoalParams = {
+  goalId: string;
+  name?: string;
+  targetAmount?: number;
+  currentAmount?: number;
+  targetDate?: string;
+  status?: GoalStatus;
+  linkedAccountId?: string;
+  linkedBankId?: string;
+};
 
 // Actions
 declare interface getAccountsProps {
