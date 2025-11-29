@@ -5,8 +5,8 @@ import { cn } from "@/lib/utils"
 import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import Footer from "./footer"
-import PlaidLink from "./plaid-link"
+import Footer from "../ui/footer"
+import PlaidLink from "../ui/plaid-link"
 
 const Sidebar = ({user}: SidebarProps) => {
     const pathName = usePathname();

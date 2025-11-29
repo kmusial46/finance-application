@@ -13,7 +13,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/investments-table';
+} from '@/components/investments/investments-history';
 import { deleteInvestment } from '@/lib/actions/investment.actions';
 import { formatAmount } from '@/lib/utils';
 

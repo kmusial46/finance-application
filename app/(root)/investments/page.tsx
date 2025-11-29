@@ -1,7 +1,7 @@
 import HeaderBox from '@/components/ui/header-box';
-import InvestmentForm from '@/components/ui/investment-form';
-import InvestmentTable from '@/components/ui/investment-table';
-import PortfolioPieChart from '@/components/ui/portfolio-pie-chart';
+import InvestmentForm from '@/components/investments/investment-form';
+import InvestmentTable from '@/components/investments/investment-table';
+import PortfolioPieChart from '@/components/transactions/portfolio-pie-chart';
 import { getInvestments } from '@/lib/actions/investment.actions';
 import { getLoggedInUser } from '@/lib/actions/user.actions';
 import { formatAmount } from '@/lib/utils';

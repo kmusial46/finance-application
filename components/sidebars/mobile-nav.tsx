@@ -14,8 +14,8 @@ import Link from "next/link";
 import { sidebarLinks } from "@/constants";
 import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
-import Footer from "./footer";
-import PlaidLink from "./plaid-link";
+import Footer from "../ui/footer";
+import PlaidLink from "../ui/plaid-link";
 
 const MobileNav = ({ user }: MobileNavProps) => {
   const pathName = usePathname();

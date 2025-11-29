@@ -16,7 +16,7 @@ export const sidebarLinks = [
   },
   {
     imgURL: "/icons/money-send.svg",
-    route: "/market",
+    route: "/stock-market",
     label: "Stock Market",
   },
   {
@@ -28,6 +28,11 @@ export const sidebarLinks = [
     imgURL: "/icons/dollar.svg",
     route: "/savings",
     label: "Savings",
+  },
+  {
+    imgURL: "/icons/credit-card.svg",
+    route: "/bills-and-debts",
+    label: "Bills & Debts",
   },
 ];
 
@@ -548,7 +553,7 @@ export const MARKET_DATA_WIDGET_CONFIG = {
 
 export const SYMBOL_INFO_WIDGET_CONFIG = (symbol: string) => ({
     symbol: symbol.toUpperCase(),
-    colorTheme: 'dark',
+    colorTheme: 'light',
     isTransparent: true,
     locale: 'en',
     width: '100%',
@@ -569,10 +574,10 @@ export const CANDLE_CHART_WIDGET_CONFIG = (symbol: string) => ({
     save_image: false,
     style: 1,
     symbol: symbol.toUpperCase(),
-    theme: 'dark',
+    theme: 'light',
     timezone: 'Etc/UTC',
-    backgroundColor: '#141414',
-    gridColor: '#141414',
+    backgroundColor: '#FFFFFF',
+    gridColor: '#FFFFFF',
     watchlist: [],
     withdateranges: false,
     compareSymbols: [],
@@ -595,10 +600,10 @@ export const BASELINE_WIDGET_CONFIG = (symbol: string) => ({
     save_image: false,
     style: 10,
     symbol: symbol.toUpperCase(),
-    theme: 'dark',
+    theme: 'light',
     timezone: 'Etc/UTC',
-    backgroundColor: '#141414',
-    gridColor: '#141414',
+    backgroundColor: '#FFFFFF',
+    gridColor: '#FFFFFF',
     watchlist: [],
     withdateranges: false,
     compareSymbols: [],
@@ -609,7 +614,7 @@ export const BASELINE_WIDGET_CONFIG = (symbol: string) => ({
 
 export const TECHNICAL_ANALYSIS_WIDGET_CONFIG = (symbol: string) => ({
     symbol: symbol.toUpperCase(),
-    colorTheme: 'dark',
+    colorTheme: 'light',
     isTransparent: 'true',
     locale: 'en',
     width: '100%',
@@ -618,18 +623,9 @@ export const TECHNICAL_ANALYSIS_WIDGET_CONFIG = (symbol: string) => ({
     largeChartUrl: '',
 });
 
-export const COMPANY_PROFILE_WIDGET_CONFIG = (symbol: string) => ({
-    symbol: symbol.toUpperCase(),
-    colorTheme: 'dark',
-    isTransparent: 'true',
-    locale: 'en',
-    width: '100%',
-    height: 440,
-});
-
 export const COMPANY_FINANCIALS_WIDGET_CONFIG = (symbol: string) => ({
     symbol: symbol.toUpperCase(),
-    colorTheme: 'dark',
+    colorTheme: 'light',
     isTransparent: 'true',
     locale: 'en',
     width: '100%',

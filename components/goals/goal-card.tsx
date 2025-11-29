@@ -4,7 +4,7 @@ import React from 'react'
 import { Progress } from "@/components/ui/progress"
 import { formatAmount, cn } from "@/lib/utils"
 import { Calendar, Wallet, Link as LinkIcon } from 'lucide-react'
-import { Button } from '../button'
+import { Button } from '../ui/button'
 import {
   Dialog,
   DialogContent,

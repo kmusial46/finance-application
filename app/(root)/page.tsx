@@ -1,6 +1,6 @@
-import RecentTransactions from '@/components/ui/recent-transactions';
+import RecentTransactions from '@/components/transactions/recent-transactions';
 import HeaderBox from '@/components/ui/header-box';
-import RightSidebar from '@/components/ui/right-sidebar';
+import RightSidebar from '@/components/sidebars/right-sidebar';
 import TotalBalanceBox from '@/components/ui/total-balance-box';
 import { getAccount, getAccounts } from '@/lib/actions/bank.actions';
 import { getLoggedInUser } from '@/lib/actions/user.actions';

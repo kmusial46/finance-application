@@ -374,3 +374,121 @@ declare interface DeleteInvestmentProps {
   investmentId: string;
   userId: string;
 }
+
+declare interface RawNewsArticle {
+        id: number;
+        headline?: string;
+        summary?: string;
+        source?: string;
+        url?: string;
+        datetime?: number;
+        image?: string;
+        category?: string;
+        related?: string;
+    };
+
+declare interface MarketNewsArticle {
+        id: number;
+        headline: string;
+        summary: string;
+        source: string;
+        url: string;
+        datetime: number;
+        category: string;
+        related: string;
+        image?: string;
+    };
+
+declare interface Stock {
+  symbol: string;
+  name: string;
+  exchange: string;
+  type: string;
+};
+
+declare interface StockWithWatchlistStatus extends Stock {
+        isInWatchlist: boolean;
+    };
+
+declare interface FinnhubSearchResult {
+        symbol: string;
+        description: string;
+        displaySymbol?: string;
+        type: string;
+    };
+
+declare interface FinnhubSearchResponse {
+        count: number;
+        result: FinnhubSearchResult[];
+    };
+
+declare interface SearchCommandProps {
+    renderAs?: 'button' | 'text' | 'bar';
+    label?: string;
+    initialStocks: StockWithWatchlistStatus[];
+  };
+
+declare interface StockDetailsPageProps {
+        params: Promise<{
+            symbol: string;
+        }>;
+    };
+
+declare type Bill = {
+  $id: string;
+  userId: string;
+  name: string;
+  amount: number;
+  dueDate: string; // ISO Date string or day of month
+  frequency: "weekly" | "bi-weekly" | "monthly" | "yearly";
+  category: string;
+  isAutoDetected: boolean;
+  linkedAccountId?: string; // Link to Plaid Account
+  status: "active" | "paused";
+  nextPaymentDate: string;
+  $createdAt: string;
+  $updatedAt: string;
+};
+
+declare type Debt = {
+  $id: string;
+  userId: string;
+  name: string;
+  totalAmount: number; // Current remaining balance
+  initialAmount?: number; // For progress calculation
+  interestRate?: number;
+  minimumPayment?: number;
+  dueDate?: string;
+  type: "credit_card" | "loan" | "bnpl" | "other";
+  linkedAccountId?: string; // Link to Plaid Account
+  lastPaymentDate?: string;
+  payoffTargetDate?: string;
+  $createdAt: string;
+  $updatedAt: string;
+};
+
+declare type CreateBillParams = {
+  userId: string;
+  name: string;
+  amount: number;
+  dueDate: string;
+  frequency: string;
+  category?: string;
+  linkedAccountId?: string;
+  isAutoDetected?: boolean;
+  status?: string;
+  nextPaymentDate: string;
+};
+
+declare type CreateDebtParams = {
+  userId: string;
+  name: string;
+  totalAmount: number;
+  type: string;
+  initialAmount?: number;
+  interestRate?: number;
+  minimumPayment?: number;
+  dueDate?: string;
+  linkedAccountId?: string;
+  payoffTargetDate?: string;
+};

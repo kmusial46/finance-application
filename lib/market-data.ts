@@ -2,13 +2,28 @@ const FINNHUB_BASE_URL = "https://finnhub.io/api/v1";
 const FINNHUB_QUOTE_ENDPOINT = `${FINNHUB_BASE_URL}/quote`;
 const FINNHUB_SEARCH_ENDPOINT = `${FINNHUB_BASE_URL}/search`;
 const FINNHUB_PROFILE_ENDPOINT = `${FINNHUB_BASE_URL}/stock/profile2`;
+const FINNHUB_CANDLE_ENDPOINT = `${FINNHUB_BASE_URL}/stock/candle`;
+const FINNHUB_METRIC_ENDPOINT = `${FINNHUB_BASE_URL}/stock/metric`;
 
 const API_ERROR = "Unable to reach market data provider.";
 
 const getApiKey = () => {
-  const key = process.env.MARKET_DATA_API_KEY;
+  // Prefer a server-side key (not exposed to the client). Fall back to the
+  // public env var only if the server key is not set. This makes local dev
+  // easier and allows secure server-only configuration.
+  // Support a few common env names used across this repo and by providers
+  // (e.g. FINNHUB). This makes local setups more forgiving if the key was
+  // named differently in `.env`.
+  const key =
+    process.env.MARKET_DATA_API_KEY ||
+    process.env.NEXT_PUBLIC_MARKET_DATA_API_KEY ||
+    process.env.NEXT_PUBLIC_FINNHUB_API_KEY ||
+    process.env.FINNHUB_API_KEY;
+
   if (!key) {
-    throw new Error("Missing MARKET_DATA_API_KEY environment variable.");
+    throw new Error(
+      "Missing market data API key. Set one of: MARKET_DATA_API_KEY, NEXT_PUBLIC_MARKET_DATA_API_KEY, NEXT_PUBLIC_FINNHUB_API_KEY, or FINNHUB_API_KEY."
+    );
   }
   return key;
 };
@@ -40,7 +55,9 @@ export const fetchQuoteForSymbol = async (symbol: string) => {
   const data = await callFinnhub(FINNHUB_QUOTE_ENDPOINT, { symbol });
 
   if (!data || typeof data.c !== "number" || data.c <= 0) {
-    throw new Error(`No valid quote returned for symbol ${symbol}.`);
+    // Return a fallback or throw. For now, let's return null to handle gracefully.
+    // throw new Error(`No valid quote returned for symbol ${symbol}.`);
+    return null;
   }
 
   return {
@@ -85,4 +102,24 @@ export const fetchCompanyProfile = async (symbol: string) => {
     currency: typeof data.currency === "string" ? data.currency : undefined,
     logo: typeof data.logo === "string" ? data.logo : undefined,
   };
+};
+
+export const fetchCandles = async (symbol: string, resolution: string, from: number, to: number) => {
+  const data = await callFinnhub(FINNHUB_CANDLE_ENDPOINT, {
+    symbol,
+    resolution,
+    from: String(from),
+    to: String(to),
+  });
+
+  if (data.s === "no_data") {
+    return null;
+  }
+
+  return data as FinnhubCandle;
+};
+
+export const fetchMetric = async (symbol: string) => {
+  const data = await callFinnhub(FINNHUB_METRIC_ENDPOINT, { symbol, metric: "all" });
+  return data as FinnhubMetric;
 };
