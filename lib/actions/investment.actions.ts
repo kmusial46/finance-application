@@ -291,3 +291,67 @@ export const deleteInvestment = async ({
     });
   }
 };
+
+export const updateInvestment = async ({
+  investmentId,
+  userId,
+  data,
+}: UpdateInvestmentProps) => {
+  try {
+    if (!DATABASE_ID || !INVESTMENT_COLLECTION_ID) {
+      return parseStringify({ error: missingConfigMessage });
+    }
+
+    const { database } = await createAdminClient();
+    await ensureUserIdAttribute(database);
+
+    const existing = await database.getDocument(
+      DATABASE_ID,
+      INVESTMENT_COLLECTION_ID,
+      investmentId
+    );
+
+    const normalizedExisting = normalizeInvestmentDocument(existing);
+    const ownerId = normalizedExisting?.userId;
+
+    // Only allow update when the requesting account matches the stored userId
+    if (!normalizedExisting || ownerId !== userId) {
+      return parseStringify({ error: "Investment not found." });
+    }
+
+    // Validate shareCount if provided
+    if (data.shareCount !== undefined) {
+      const shares = Number(data.shareCount);
+      if (!Number.isFinite(shares) || shares <= 0) {
+        return parseStringify({ error: "Invalid share count provided." });
+      }
+      data.shareCount = shares;
+    }
+
+    // Validate pricePerShare if provided
+    if (data.pricePerShare !== undefined) {
+      const price = Number(data.pricePerShare);
+      if (!Number.isFinite(price) || price < 0) {
+        return parseStringify({ error: "Invalid price provided." });
+      }
+      data.pricePerShare = price;
+    }
+
+    const updated = await database.updateDocument(
+      DATABASE_ID,
+      INVESTMENT_COLLECTION_ID,
+      investmentId,
+      data
+    );
+
+    revalidatePath("/investments");
+
+    const normalizedUpdated = normalizeInvestmentDocument(updated);
+    return parseStringify(normalizedUpdated ?? updated);
+  } catch (error) {
+    console.error("Error updating investment:", error);
+    return parseStringify({
+      error: "Unable to update investment. Please try again.",
+    });
+  }
+};

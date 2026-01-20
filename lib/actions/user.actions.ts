@@ -304,6 +304,7 @@ export const createBankAccount = async ({
             userId,
             accountId,
             accessToken,
+            bankId,
         }
 
         console.log('Creating bank document with payload:', payload)

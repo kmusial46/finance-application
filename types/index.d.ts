@@ -48,7 +48,6 @@ declare type Account = {
   type: string;
   subtype: string;
   appwriteItemId: string;
-  sharableId: string;
   needsReauth?: boolean;
   error?: any;
 };
@@ -106,7 +105,6 @@ declare type Bank = {
   bankId: string;
   accessToken: string;
   userId: string;
-  shareableId?: string;
   institutionId?: string;
 };
 
@@ -373,6 +371,17 @@ declare interface GetInvestmentsProps {
 declare interface DeleteInvestmentProps {
   investmentId: string;
   userId: string;
+}
+
+declare interface UpdateInvestmentProps {
+  investmentId: string;
+  userId: string;
+  data: {
+    shareCount?: number;
+    pricePerShare?: number;
+    purchaseDate?: string;
+    notes?: string;
+  };
 }
 
 declare interface RawNewsArticle {

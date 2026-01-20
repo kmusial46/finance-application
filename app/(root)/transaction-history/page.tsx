@@ -1,13 +1,18 @@
 import HeaderBox from "@/components/ui/header-box"
 import TransactionsTable from "@/components/transactions/transactions-table";
+import AccountSwitcher from '@/components/ui/account-switcher'
 import { getAccount, getAccounts } from "@/lib/actions/bank.actions"
 import { getLoggedInUser } from "@/lib/actions/user.actions"
 import { formatAmount } from "@/lib/utils";
 import { Pagination } from "@/components/ui/pagination";
 
 const TransactionHistory = async ({searchParams}: SearchParamProps) => {
-  const id = searchParams?.id;
-  const page = searchParams?.page;
+  // `searchParams` may be a Promise in some Next.js setups; resolve safely.
+  // This ensures client-side navigation with different query params reads the correct `id`.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const resolvedSearchParams = typeof (searchParams as any)?.then === 'function' ? await (searchParams as any) : searchParams;
+  const id = resolvedSearchParams?.id;
+  const page = resolvedSearchParams?.page;
 
   const currentPage = Number(page as string) || 1;
   const loggedIn = await getLoggedInUser();
@@ -39,14 +44,13 @@ const TransactionHistory = async ({searchParams}: SearchParamProps) => {
         <div className="transactions-account">
           <div className="flex flex-col gap-2">
             <h2 className="text-18 font-bold text-white">{account?.data.name}</h2>
-            <p className="text-14 text-blue-25">
-              {account?.data.officialName}
-            </p>
-            <p className="text-14 font-semibold tracking-[1.1px] text-white">
-              ●●●● ●●●● ●●●● {account?.data.mask}
-            </p>
+            <p className="text-14 text-blue-25">{account?.data.officialName}</p>
+            <p className="text-14 font-semibold tracking-[1.1px] text-white">●●●● ●●●● ●●●● {account?.data.mask}</p>
+            <div className="mt-3">
+              <AccountSwitcher accounts={accountsData} currentId={appwriteItemId} />
+            </div>
           </div>
-          
+
           <div className='transactions-account-balance'>
             <p className="text-14">Current balance</p>
             <p className="text-24 text-center font-bold">{formatAmount(account?.data.currentBalance)}</p>

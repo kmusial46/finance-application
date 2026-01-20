@@ -53,9 +53,9 @@ const ReauthDialog = ({ accounts }: ReauthDialogProps) => {
                   Why is this happening?
                 </p>
                 <ul className="list-disc list-inside text-xs space-y-1 text-amber-700">
-                  <li>You changed your password at your bank</li>
-                  <li>Your bank requires additional security verification</li>
-                  <li>Your connection has expired</li>
+                  <li>You changed your password at your bank.</li>
+                  <li>Your bank requires additional security verification.</li>
+                  <li>Your connection has expired.</li>
                 </ul>
               </div>
 

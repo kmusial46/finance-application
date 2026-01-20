@@ -49,7 +49,6 @@ export const getAccounts = async ({ userId }: getAccountsProps) => {
             type: accountData.type as string,
             subtype: accountData.subtype! as string,
             appwriteItemId: bank.$id,
-            shareableId: bank.shareableId,
           };
 
           return account;
@@ -74,7 +73,6 @@ export const getAccounts = async ({ userId }: getAccountsProps) => {
               type: 'debit',
               subtype: 'debit',
               appwriteItemId: bank.$id,
-              shareableId: bank.shareableId,
               needsReauth: true,
               error: plaidError,
             };
