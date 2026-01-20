@@ -92,12 +92,16 @@ export const createGoalTransaction = async (transaction: CreateGoalTransactionPa
   try {
     const { database } = await createAdminClient();
 
+    // Destructure to remove 'notes' if it exists, as it's no longer in the schema
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { notes, ...transactionData } = transaction;
+
     // 1. Create the transaction record
     const newTransaction = await database.createDocument(
       DATABASE_ID!,
       GOAL_TRANSACTION_COLLECTION_ID!,
       ID.unique(),
-      transaction
+      transactionData
     );
 
     // 2. Update the goal's currentAmount

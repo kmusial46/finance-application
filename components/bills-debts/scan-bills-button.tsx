@@ -24,10 +24,9 @@ export function ScanBillsButton({ userId }: { userId: string }) {
 
   return (
     <Button 
-      variant="outline" 
       onClick={handleScan} 
       disabled={isLoading}
-      className="gap-2 bg-white"
+      className="gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 text-white hover:from-emerald-700 hover:to-teal-700 shadow-lg hover:shadow-xl transition-all duration-200 font-semibold px-6 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
     >
       {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ScanSearch className="h-4 w-4" />}
       Scan Bills

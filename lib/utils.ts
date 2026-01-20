@@ -211,12 +211,7 @@ export const authFormSchema = (type: string) => z.object({
   password: z.string().min(8, 'Password must be at least 8 characters.'),
   firstName: type === 'sign-in' ? z.string().optional() : z.string().min(2).max(30),
   lastName: type === 'sign-in' ? z.string().optional() : z.string().min(2).max(30),
-  address1: type === 'sign-in' ? z.string().optional() : z.string().min(6).max(50),
-  city: type === 'sign-in' ? z.string().optional() : z.string().min(3).max(50),
-  county: type === 'sign-in' ? z.string().optional() : z.string().min(3).max(20),
-  postcode: type === 'sign-in' ? z.string().optional() : z.string().min(6).max(10),
-  dateOfBirth: type === 'sign-in' ? z.string().optional() : z.string(),
-  nationalInsuranceNumber: type === 'sign-in' ? z.string().optional() : z.string().min(9).max(9)
+  phone: type === 'sign-in' ? z.string().optional() : z.string().min(10, "Enter a valid phone number").max(15),
 });
 
 const isNumericString = (value: string) => {

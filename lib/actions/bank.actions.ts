@@ -1,13 +1,6 @@
 "use server";
 
-import {
-  ACHClass,
-  CountryCode,
-  TransferAuthorizationCreateRequest,
-  TransferCreateRequest,
-  TransferNetwork,
-  TransferType,
-} from "plaid";
+import { CountryCode } from "plaid";
 import { plaidClient } from "../plaid";
 import { parseStringify } from "../utils";
 import { getTransactionsByBankId } from "./transaction.actions";
@@ -30,42 +23,106 @@ export const getAccounts = async ({ userId }: getAccountsProps) => {
     // get banks from db
     const banks = await getBanks({ userId });
 
-    const accounts = await Promise.all(
+    // Process accounts individually and handle errors gracefully
+    const accountResults = await Promise.allSettled(
       banks?.map(async (bank: Bank) => {
-        // get each account info from plaid
-        const accountsResponse = await plaidClient.accountsGet({
-          access_token: bank.accessToken,
-        });
-        const accountData = accountsResponse.data.accounts[0];
+        try {
+          // get each account info from plaid
+          const accountsResponse = await plaidClient.accountsGet({
+            access_token: bank.accessToken,
+          });
+          const accountData = accountsResponse.data.accounts[0];
 
-        // get institution info from plaid (use fallback if getInstitution fails)
-        const institution = await getInstitution({
-          institutionId: accountsResponse.data.item.institution_id!,
-        });
+          // get institution info from plaid (use fallback if getInstitution fails)
+          const institution = await getInstitution({
+            institutionId: accountsResponse.data.item.institution_id!,
+          });
 
-        const account = {
-          id: accountData.account_id,
-          availableBalance: accountData.balances.available!,
-          currentBalance: accountData.balances.current!,
-          institutionId: institution?.institution_id ?? accountsResponse.data.item.institution_id ?? '',
-          name: accountData.name,
-          officialName: accountData.official_name,
-          mask: accountData.mask!,
-          type: accountData.type as string,
-          subtype: accountData.subtype! as string,
-          appwriteItemId: bank.$id,
-        };
+          const account = {
+            id: accountData.account_id,
+            availableBalance: accountData.balances.available!,
+            currentBalance: accountData.balances.current!,
+            institutionId: institution?.institution_id ?? accountsResponse.data.item.institution_id ?? '',
+            name: accountData.name,
+            officialName: accountData.official_name,
+            mask: accountData.mask!,
+            type: accountData.type as string,
+            subtype: accountData.subtype! as string,
+            appwriteItemId: bank.$id,
+            shareableId: bank.shareableId,
+          };
 
-        return account;
+          return account;
+        } catch (error) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const e: any = error;
+          const plaidError = e?.response?.data;
+          
+          // Handle ITEM_LOGIN_REQUIRED and other Plaid errors
+          if (plaidError?.error_code === 'ITEM_LOGIN_REQUIRED') {
+            console.warn(`Bank account ${bank.$id} requires re-authentication:`, plaidError.error_message);
+            
+            // Return a placeholder account with error flag
+            return {
+              id: bank.$id,
+              availableBalance: 0,
+              currentBalance: 0,
+              institutionId: bank.institutionId || '',
+              name: 'Re-authentication Required',
+              officialName: 'Re-authentication Required',
+              mask: '****',
+              type: 'debit',
+              subtype: 'debit',
+              appwriteItemId: bank.$id,
+              shareableId: bank.shareableId,
+              needsReauth: true,
+              error: plaidError,
+            };
+          }
+          
+          // For other errors, throw to be caught by outer catch
+          throw error;
+        }
       })
     );
 
-    const totalBanks = accounts.length;
-    const totalCurrentBalance = accounts.reduce((total, account) => {
-      return total + account.currentBalance;
-    }, 0);
+    // Separate successful accounts from failed ones
+    const accounts = [];
+    const errors = [];
+    
+    for (const result of accountResults) {
+      if (result.status === 'fulfilled') {
+        accounts.push(result.value);
+      } else {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const e: any = result.reason;
+        const plaidError = e?.response?.data;
+        errors.push(plaidError || { error_message: e?.message || 'Unknown error' });
+      }
+    }
 
-    return parseStringify({ data: accounts, totalBanks, totalCurrentBalance });
+    // If we have some successful accounts, return them with warnings about failed ones
+    if (accounts.length > 0) {
+      const totalBanks = accounts.filter(acc => !acc.needsReauth).length;
+      const totalCurrentBalance = accounts
+        .filter(acc => !acc.needsReauth)
+        .reduce((total, account) => total + account.currentBalance, 0);
+
+      return parseStringify({ 
+        data: accounts, 
+        totalBanks, 
+        totalCurrentBalance,
+        ...(errors.length > 0 && { partialErrors: errors })
+      });
+    }
+
+    // If all accounts failed, return error
+    if (errors.length > 0) {
+      return parseStringify({ error: errors[0], allErrors: errors });
+    }
+
+    // No banks to process
+    return parseStringify({ data: [], totalBanks: 0, totalCurrentBalance: 0 });
   } catch (error) {
     console.error("An error occurred while getting the accounts:", error);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -136,9 +193,8 @@ export const getAccount = async ({ appwriteItemId }: getAccountProps) => {
         date: transferData.$createdAt,
         paymentChannel: transferData.channel,
         category: formatTransactionCategory(transferData.category),
-        type: transferData.senderBankId === bank.$id ? "debit" : "credit",
+        type: "debit",
         senderBankId: transferData.senderBankId,
-        receiverBankId: transferData.receiverBankId,
       })
     );
 
@@ -201,9 +257,9 @@ export const getInstitution = async ({
       country_codes: ["GB"] as CountryCode[],
     });
 
-    const intitution = institutionResponse.data.institution;
+    const institution = institutionResponse.data.institution;
 
-    return parseStringify(intitution);
+    return parseStringify(institution);
   } catch (error) {
     console.error("An error occurred while getting the accounts:", error);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -294,46 +350,5 @@ export const getTransactions = async ({
     const e: any = error;
     const errPayload = e?.response?.data ?? (e?.message ? { message: e.message } : e);
     return parseStringify({ error: errPayload });
-  }
-};
-
-// Create Transfer
-export const createTransfer = async () => {
-  const transferAuthRequest: TransferAuthorizationCreateRequest = {
-    access_token: "access-sandbox-cddd20c1-5ba8-4193-89f9-3a0b91034c25",
-    account_id: "Zl8GWV1jqdTgjoKnxQn1HBxxVBanm5FxZpnQk",
-    funding_account_id: "442d857f-fe69-4de2-a550-0c19dc4af467",
-    type: "credit" as TransferType,
-    network: "ach" as TransferNetwork,
-    amount: "10.00",
-    ach_class: "ppd" as ACHClass,
-    user: {
-      legal_name: "Anne Charleston",
-    },
-  };
-  try {
-    const transferAuthResponse =
-      await plaidClient.transferAuthorizationCreate(transferAuthRequest);
-    const authorizationId = transferAuthResponse.data.authorization.id;
-
-    const transferCreateRequest: TransferCreateRequest = {
-      access_token: "access-sandbox-cddd20c1-5ba8-4193-89f9-3a0b91034c25",
-      account_id: "Zl8GWV1jqdTgjoKnxQn1HBxxVBanm5FxZpnQk",
-      description: "payment",
-      authorization_id: authorizationId,
-    };
-
-    const responseCreateResponse = await plaidClient.transferCreate(
-      transferCreateRequest
-    );
-
-    const transfer = responseCreateResponse.data.transfer;
-    return parseStringify(transfer);
-  } catch (error) {
-    console.error(
-      "An error occurred while creating transfer authorization:",
-      error
-    );
-    return parseStringify({ error: String(error) });
   }
 };

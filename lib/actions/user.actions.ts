@@ -10,7 +10,7 @@ import { revalidatePath } from "next/cache"
 
 const {
     APPWRITE_DATABASE_ID: DATABASE_ID,
-    APPWRITE_USER_COLLECTION_ID: USER_COLLECTION_ID,
+    APPWRITE_USERS_COLLECTION_ID: USER_COLLECTION_ID,
     APPWRITE_BANK_COLLECTION_ID: BANK_COLLECTION_ID
 } = process.env
 
@@ -18,10 +18,10 @@ export const signIn = async ({email, password}: signInProps) => {
     try {
         const { account } = await createAdminClient()
 
-        const response = await account.createEmailPasswordSession({
+        const response = await account.createEmailPasswordSession(
             email,
             password
-        })
+        )
 
         // Persist session secret in a cookie so subsequent requests from the
         // browser include the Appwrite session and the user is considered logged in.
@@ -47,58 +47,87 @@ export const signIn = async ({email, password}: signInProps) => {
 
 
 export const signUp = async (userData: SignUpParams) => {
-    const { email, password, firstName, lastName } = userData
+    const { email, password, firstName, lastName, phone } = userData
 
     let newUserAccount
 
     try {
-        const { account, database } = await createAdminClient()
+        const { account, database, user } = await createAdminClient()
 
-        newUserAccount = await account.create({
-            userId: ID.unique(),
-            email,
-            password,
-            name: `${firstName} ${lastName}`,
+        try {
+            newUserAccount = await account.create(
+                ID.unique(),
+                email,
+                password,
+                `${firstName} ${lastName}`
+            )
+        } catch (createError: any) {
+            if (createError?.code === 409) {
+                console.log('User already exists in Auth, fetching details...')
+                const existingUsers = await user.list([Query.equal('email', email)])
+                if (existingUsers.total > 0) {
+                    newUserAccount = existingUsers.users[0]
+                } else {
+                    throw createError
+                }
+            } else {
+                throw createError
+            }
+        }
+
+        if(!newUserAccount) throw new Error('Error creating or retrieving user')
+
+        // Debug: log presence of Appwrite envs so we can see why creation may be skipped
+        console.log('Appwrite env presence:', {
+            DATABASE_ID: !!DATABASE_ID,
+            USER_COLLECTION_ID: !!USER_COLLECTION_ID,
+            BANK_COLLECTION_ID: !!BANK_COLLECTION_ID
         })
 
-        if(!newUserAccount) throw new Error('Error creating user')
+        if (!DATABASE_ID || !USER_COLLECTION_ID) {
+            console.log('Appwrite database or user collection ID missing; skipping database user document creation')
+        } else {
+            // Check if user document already exists
+            const existingDocs = await database.listDocuments(
+                DATABASE_ID,
+                USER_COLLECTION_ID,
+                [Query.equal('userId', newUserAccount.$id)]
+            )
 
-            // Debug: log presence of Appwrite envs so we can see why creation may be skipped
-            console.log('Appwrite env presence:', {
-                DATABASE_ID: !!DATABASE_ID,
-                USER_COLLECTION_ID: !!USER_COLLECTION_ID,
-                BANK_COLLECTION_ID: !!BANK_COLLECTION_ID
-            })
-
-            if (!DATABASE_ID || !USER_COLLECTION_ID) {
-                console.log('Appwrite database or user collection ID missing; skipping database user document creation')
-            } else {
+            if (existingDocs.total === 0) {
                 // Use positional args to match node-appwrite Databases.createDocument signature
-                    // whitelist fields to match Appwrite collection schema
-                    const userDoc = {
-                        email: userData.email,
-                        firstName: userData.firstName,
-                        lastName: userData.lastName,
-                        address1: userData.address1,
-                        city: userData.city,
-                        postcode: userData.postcode,
-                        dateOfBirth: userData.dateOfBirth,
-                        nationalInsuranceNumber: userData.nationalInsuranceNumber,
-                        userId: newUserAccount.$id
-                    }
+                // whitelist fields to match Appwrite collection schema
+                const userDoc = {
+                    email: userData.email,
+                    firstName: userData.firstName,
+                    lastName: userData.lastName,
+                    phone: userData.phone,
+                    userId: newUserAccount.$id
+                }
 
+                console.log('Attempting to create user document with payload:', userDoc)
+
+                try {
                     await database.createDocument(
                         DATABASE_ID!,
                         USER_COLLECTION_ID!,
                         ID.unique(),
                         userDoc
                     )
+                    console.log('User document created successfully')
+                } catch (dbError) {
+                    console.error('Error creating user document in database:', dbError)
+                    throw dbError
+                }
+            } else {
+                console.log('User document already exists, skipping creation')
             }
+        }
         
-        const session = await account.createEmailPasswordSession({
+        const session = await account.createEmailPasswordSession(
             email,
             password
-        });
+        );
 
         const cookieStore = await cookies()
         cookieStore.set("appwrite-session", session.secret, {
@@ -186,12 +215,42 @@ export const createLinkToken = async (user: User | Partial<User> | null | undefi
     }
 }
 
+// Create a link token specifically for re-authenticating an existing bank connection
+export const createUpdateLinkToken = async (accessToken: string) => {
+    try {
+        if (!accessToken) {
+            throw new Error('Missing access token for update mode link token creation')
+        }
+
+        const response = await plaidClient.linkTokenCreate({
+            access_token: accessToken,
+            user: { client_user_id: 'update-mode-user' },
+            client_name: 'Aureon',
+            language: 'en',
+            country_codes: ['GB'] as CountryCode[]
+        })
+
+        return parseStringify({ linkToken: response.data.link_token })
+    } catch (error) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const e: any = error
+        const errorData = e?.response?.data
+        console.error('Error creating update link token:', errorData ?? e)
+        return parseStringify({ 
+            error: {
+                message: errorData?.error_message ?? e?.message ?? 'Failed to create update link token',
+                code: errorData?.error_code ?? 'UNKNOWN_ERROR',
+                details: errorData
+            }
+        })
+    }
+}
+
 export const createBankAccount = async ({
     userId,
     bankId,
     accountId,
     accessToken,
-    fundingSourceUrl,
 }: createBankAccountProps) => {
     try {
         const { database } = await createAdminClient()
@@ -219,7 +278,6 @@ export const createBankAccount = async ({
             userId,
             accountId,
             accessToken,
-            fundingSourceUrl,
         }
 
         console.log('Creating bank document with payload:', payload)
@@ -262,14 +320,11 @@ export const exchangePublicToken = async ({publicToken, user}: exchangePublicTok
 
         console.log('Using accountData:', accountData)
 
-        const fundingSourceUrl = ""
-
         await createBankAccount({
-            userId: user.$id,
+            userId: user.userId || user.$id,
             bankId: itemId,
             accountId: accountData.account_id,
             accessToken,
-            fundingSourceUrl,
         })
 
         revalidatePath('/')

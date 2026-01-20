@@ -29,25 +29,28 @@ const normalizeInvestmentDocument = (doc: any) => {
   const shareCount =
     typeof rawShares === "number" ? rawShares : Number(rawShares ?? 0) || 0;
 
-  const ownerAccountId =
-    typeof doc.ownerAccountId === "string" && doc.ownerAccountId.trim().length > 0
-      ? doc.ownerAccountId.trim()
+  const userId =
+    typeof doc.userId === "string" && doc.userId.trim().length > 0
+      ? doc.userId.trim()
       : undefined;
+
+  const purchaseDate = doc.purchaseDate ? doc.purchaseDate : doc.$createdAt;
 
   return {
     ...doc,
-    ownerAccountId,
+    userId,
     pricePerShare,
     shareCount,
+    purchaseDate,
   };
 };
 
 type DatabaseClient = Awaited<ReturnType<typeof createAdminClient>>["database"];
 
-let ownerAccountAttributeEnsured = false;
+let userIdAttributeEnsured = false;
 
-const ensureOwnerAccountAttribute = async (database: DatabaseClient) => {
-  if (ownerAccountAttributeEnsured) return;
+const ensureUserIdAttribute = async (database: DatabaseClient) => {
+  if (userIdAttributeEnsured) return;
 
   if (!DATABASE_ID || !INVESTMENT_COLLECTION_ID) {
     return;
@@ -58,7 +61,7 @@ const ensureOwnerAccountAttribute = async (database: DatabaseClient) => {
       await (database as any).getAttribute(
         DATABASE_ID,
         INVESTMENT_COLLECTION_ID,
-        "ownerAccountId"
+        "userId"
       );
     } else {
       const attributes = await (database as any).listAttributes(
@@ -67,14 +70,14 @@ const ensureOwnerAccountAttribute = async (database: DatabaseClient) => {
       );
 
       const exists = Array.isArray(attributes?.attributes)
-        ? attributes.attributes.some((attr: any) => attr?.key === "ownerAccountId")
+        ? attributes.attributes.some((attr: any) => attr?.key === "userId")
         : false;
 
       if (!exists) {
         throw Object.assign(new Error("missing attribute"), { code: 404 });
       }
     }
-    ownerAccountAttributeEnsured = true;
+    userIdAttributeEnsured = true;
   } catch (attributeError: any) {
     const errorMessage =
       (attributeError && typeof attributeError === "object" && "message" in attributeError)
@@ -82,7 +85,7 @@ const ensureOwnerAccountAttribute = async (database: DatabaseClient) => {
         : String(attributeError ?? "");
 
     if (attributeError?.code && attributeError.code !== 404) {
-      console.warn("Unable to verify ownerAccountId attribute:", errorMessage);
+      console.warn("Unable to verify userId attribute:", errorMessage);
       return;
     }
 
@@ -90,14 +93,14 @@ const ensureOwnerAccountAttribute = async (database: DatabaseClient) => {
       await database.createStringAttribute(
         DATABASE_ID,
         INVESTMENT_COLLECTION_ID,
-        "ownerAccountId",
+        "userId",
         64,
         false
       );
-      ownerAccountAttributeEnsured = true;
-      console.log("Created ownerAccountId attribute on investments collection.");
+      userIdAttributeEnsured = true;
+      console.log("Created userId attribute on investments collection.");
     } catch (createError) {
-      console.error("Failed to create ownerAccountId attribute:", createError);
+      console.error("Failed to create userId attribute:", createError);
     }
   }
 };
@@ -109,7 +112,7 @@ export const getInvestments = async ({ userId }: GetInvestmentsProps) => {
     }
 
   const { database } = await createAdminClient();
-  await ensureOwnerAccountAttribute(database);
+  await ensureUserIdAttribute(database);
 
     let documents: any[] = [];
 
@@ -117,12 +120,12 @@ export const getInvestments = async ({ userId }: GetInvestmentsProps) => {
       const byOwner = await database.listDocuments(
         DATABASE_ID,
         INVESTMENT_COLLECTION_ID,
-        [Query.equal("ownerAccountId", [userId]), Query.orderDesc("$createdAt")]
+        [Query.equal("userId", [userId]), Query.orderDesc("$createdAt")]
       );
 
       documents = byOwner.documents ?? [];
     } catch (ownerError) {
-      console.warn("Unable to query by ownerAccountId:", ownerError);
+      console.warn("Unable to query by userId:", ownerError);
     }
 
     if (!documents.length) {
@@ -141,7 +144,7 @@ export const getInvestments = async ({ userId }: GetInvestmentsProps) => {
       .filter(Boolean)
       .filter((doc: any) => {
         if (!doc) return false;
-        return doc.ownerAccountId === userId;
+        return doc.userId === userId;
       });
 
     return parseStringify({ data: filteredNormalized });
@@ -156,8 +159,10 @@ export const getInvestments = async ({ userId }: GetInvestmentsProps) => {
 
 export const createInvestment = async ({
   userId,
-  input,
+  symbol,
   shareCount,
+  pricePerShare,
+  purchaseDate,
   notes,
 }: CreateInvestmentProps) => {
   try {
@@ -166,159 +171,64 @@ export const createInvestment = async ({
     }
 
     const { database } = await createAdminClient();
-    await ensureOwnerAccountAttribute(database);
+    await ensureUserIdAttribute(database);
 
     const shares = Number(shareCount);
+    const cost = Number(pricePerShare);
 
     if (!Number.isFinite(shares) || shares <= 0) {
       return parseStringify({ error: "Invalid share count provided." });
     }
 
-    const cleanedInput = input?.trim();
+    if (!Number.isFinite(cost) || cost < 0) {
+      return parseStringify({ error: "Invalid cost basis provided." });
+    }
 
-    if (!cleanedInput) {
+    const cleanedSymbol = symbol?.trim().toUpperCase();
+
+    if (!cleanedSymbol) {
       return parseStringify({
-        error: "Enter a ticker symbol or company name to continue.",
+        error: "Enter a ticker symbol to continue.",
       });
     }
 
-    const compactInput = cleanedInput.replace(/\s+/g, "");
-    const possibleTicker = compactInput.toUpperCase();
-    const looksLikeTicker = /^[A-Z0-9.-]{1,12}$/.test(possibleTicker);
+    // Verify symbol exists
+    const quote = await fetchQuoteForSymbol(cleanedSymbol).catch((error) => {
+      console.error("Quote lookup error:", error);
+      return null;
+    });
 
-    let resolvedSymbol = looksLikeTicker ? possibleTicker : "";
-    let resolvedName = "";
-    let quote: Awaited<ReturnType<typeof fetchQuoteForSymbol>> | null = null;
-
-    if (resolvedSymbol) {
-      quote = await fetchQuoteForSymbol(resolvedSymbol).catch((error) => {
-        console.error("Quote lookup error:", error);
-        return null;
-      });
-
-      if (!quote) {
-        resolvedSymbol = "";
-      }
-    }
-
-    if (!resolvedSymbol) {
-      const searchResult = await searchSymbol(cleanedInput).catch((error) => {
-        console.error("Symbol search failed:", error);
-        return null;
-      });
-
-      if (searchResult?.symbol) {
-        resolvedSymbol = searchResult.symbol.toUpperCase();
-        if (searchResult.name) {
-          resolvedName = searchResult.name;
-        }
-
-        quote = await fetchQuoteForSymbol(resolvedSymbol).catch((error) => {
-          console.error("Quote lookup error:", error);
-          return null;
-        });
-      }
-    }
-
-    if (!resolvedSymbol || !quote?.price) {
+    if (!quote) {
       return parseStringify({
-        error: `Unable to find market data for "${cleanedInput}". Please check the input and try again.`,
+        error: `Unable to verify symbol "${cleanedSymbol}".`,
       });
     }
 
-    if (!resolvedName) {
-      const profile = await fetchCompanyProfile(resolvedSymbol).catch((error) => {
-        console.error("Company profile lookup error:", error);
-        return null;
-      });
-
-      if (profile?.name) {
-        resolvedName = profile.name;
-      }
-    }
-
-    if (!resolvedName) {
-      resolvedName = cleanedInput;
+    // Get name
+    let resolvedName = cleanedSymbol;
+    const profile = await fetchCompanyProfile(cleanedSymbol).catch(() => null);
+    if (profile?.name) {
+      resolvedName = profile.name;
     }
 
     const sanitizedNotes = typeof notes === "string" ? notes.trim() : undefined;
 
     const payload = {
-      ownerAccountId: userId,
-      symbol: resolvedSymbol,
+      userId: userId,
+      symbol: cleanedSymbol,
       name: resolvedName,
-      pricePerShare: quote.price,
+      pricePerShare: cost,
       shareCount: shares,
+      purchaseDate: purchaseDate,
       notes: sanitizedNotes && sanitizedNotes.length ? sanitizedNotes : undefined,
     };
 
-    let existingDocument: any | null = null;
-
-    try {
-      const filters = [
-        Query.equal("ownerAccountId", [userId]),
-        Query.equal("symbol", resolvedSymbol),
-        Query.limit(1),
-      ];
-
-      const existing = await database.listDocuments(
-        DATABASE_ID,
-        INVESTMENT_COLLECTION_ID,
-        filters
-      );
-
-      existingDocument = existing.total > 0 ? existing.documents[0] : null;
-    } catch (queryError) {
-      try {
-        const fallbackFilters = [
-          Query.equal("symbol", resolvedSymbol),
-          Query.orderDesc("$createdAt"),
-        ];
-
-        const fallback = await database.listDocuments(
-          DATABASE_ID,
-          INVESTMENT_COLLECTION_ID,
-          fallbackFilters
-        );
-
-        existingDocument =
-          fallback.documents.find((doc: any) => {
-            const normalized = normalizeInvestmentDocument(doc);
-            if (!normalized) return false;
-            if (normalized.symbol !== resolvedSymbol) return false;
-            return normalized.ownerAccountId === userId;
-          }) ?? null;
-      } catch (fallbackError) {
-        throw queryError;
-      }
-    }
-
-    let investment;
-
-    if (existingDocument) {
-      const normalizedExisting = normalizeInvestmentDocument(existingDocument);
-      const currentShares = normalizedExisting?.shareCount ?? 0;
-
-      const updatedPayload = {
-        ...payload,
-        shareCount: currentShares + shares,
-        pricePerShare: quote.price,
-      };
-
-      investment = await database.updateDocument(
-        DATABASE_ID,
-        INVESTMENT_COLLECTION_ID,
-        existingDocument.$id,
-        updatedPayload
-      );
-    } else {
-      investment = await database.createDocument(
-        DATABASE_ID,
-        INVESTMENT_COLLECTION_ID,
-        ID.unique(),
-        payload
-      );
-    }
+    const investment = await database.createDocument(
+      DATABASE_ID,
+      INVESTMENT_COLLECTION_ID,
+      ID.unique(),
+      payload
+    );
 
     revalidatePath("/investments");
 
@@ -348,7 +258,7 @@ export const deleteInvestment = async ({
     }
 
   const { database } = await createAdminClient();
-  await ensureOwnerAccountAttribute(database);
+  await ensureUserIdAttribute(database);
 
     const existing = await database.getDocument(
       DATABASE_ID,
@@ -357,11 +267,11 @@ export const deleteInvestment = async ({
     );
 
     const normalizedExisting = normalizeInvestmentDocument(existing);
-    const ownerAccountId = normalizedExisting?.ownerAccountId;
+    const ownerId = normalizedExisting?.userId;
 
     // Only allow delete when the requesting account matches the stored
-    // ownerAccountId.
-    if (!normalizedExisting || ownerAccountId !== userId) {
+    // userId.
+    if (!normalizedExisting || ownerId !== userId) {
       return parseStringify({ error: "Investment not found." });
     }
 

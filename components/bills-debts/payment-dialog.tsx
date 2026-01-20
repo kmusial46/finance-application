@@ -35,13 +35,14 @@ export function PaymentDialog({ type, data }: PaymentDialogProps) {
         const paymentAmount = parseFloat(amount)
         if (isNaN(paymentAmount) || paymentAmount <= 0) return
 
-        // If user is paying more than remaining balance, confirm and cap
-        if (paymentAmount > data.totalAmount) {
-          const confirmed = window.confirm(`You're entering ${formatAmount(paymentAmount)}, which is more than the remaining balance ${formatAmount(data.totalAmount)}. Apply full remaining balance instead?`)
+        // If user is paying more than remaining balance, confirm
+        const remainingBalance = Math.max(0, data.initialAmount - data.totalAmountPaid);
+        if (paymentAmount > remainingBalance) {
+          const confirmed = window.confirm(`You're entering ${formatAmount(paymentAmount)}, which is more than the remaining balance ${formatAmount(remainingBalance)}. Continue?`)
           if (!confirmed) return
         }
 
-        await makeDebtPayment(data.$id, paymentAmount, data.totalAmount, paymentDate)
+        await makeDebtPayment(data.$id, paymentAmount, paymentDate)
       } else {
         // For bills, we just mark as paid and advance the date
         await markBillAsPaid(data.$id, data.nextPaymentDate, data.frequency)

@@ -20,6 +20,7 @@ export const createTransaction = async (transaction: CreateTransactionProps) => 
       {
         channel: 'online',
         category: 'Transfer',
+        type: 'debit',
         ...transaction
       }
     )
@@ -45,18 +46,9 @@ export const getTransactionsByBankId = async ({bankId}: getTransactionsByBankIdP
       [Query.equal('senderBankId', bankId)],
     )
 
-    const receiverTransactions = await database.listDocuments(
-      DATABASE_ID!,
-      TRANSACTION_COLLECTION_ID!,
-      [Query.equal('receiverBankId', bankId)],
-    );
-
     const transactions = {
-      total: senderTransactions.total + receiverTransactions.total,
-      documents: [
-        ...senderTransactions.documents, 
-        ...receiverTransactions.documents,
-      ]
+      total: senderTransactions.total,
+      documents: senderTransactions.documents,
     }
 
     return parseStringify(transactions);

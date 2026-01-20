@@ -55,6 +55,8 @@ const GoalForm = ({ userId, accounts }: { userId: string, accounts: Account[] })
       name: "",
       targetAmount: "",
       type: "manual",
+      targetDate: "",
+      linkedAccountId: "",
     },
   })
 

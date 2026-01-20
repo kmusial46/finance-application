@@ -36,18 +36,24 @@ export default async function StockDetails({ params }: StockDetailsPageProps) {
           />
         </div>
 
-        <div className="md:col-span-1 xl:col-span-1 flex flex-col gap-6">
-          <TradingViewWidget
-            scriptUrl={`${scriptUrl}technical-analysis.js`}
-            config={TECHNICAL_ANALYSIS_WIDGET_CONFIG(symbol)}
-            height={400}
-          />
+        <div className="md:col-span-1 xl:col-span-1">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="h-full">
+              <TradingViewWidget
+                scriptUrl={`${scriptUrl}technical-analysis.js`}
+                config={TECHNICAL_ANALYSIS_WIDGET_CONFIG(symbol)}
+                height={400}
+              />
+            </div>
 
-          <TradingViewWidget
-            scriptUrl={`${scriptUrl}financials.js`}
-            config={COMPANY_FINANCIALS_WIDGET_CONFIG(symbol)}
-            height={464}
-          />
+            <div className="h-full">
+              <TradingViewWidget
+                scriptUrl={`${scriptUrl}financials.js`}
+                config={COMPANY_FINANCIALS_WIDGET_CONFIG(symbol)}
+                height={464}
+              />
+            </div>
+          </div>
         </div>
       </section>
     </div>

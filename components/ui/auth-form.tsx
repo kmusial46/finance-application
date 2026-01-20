@@ -39,13 +39,8 @@ const AuthForm = ({type}: {type:string}) => {
                 const userProfile = {
                     firstName: data.firstName!,
                     lastName: data.lastName!,
-                    address1: data.address1!,
-                    city: data.city!,
-                    county: data.county!,
-                    postcode: data.postcode!,
-                    dateOfBirth: data.dateOfBirth!,
-                    nationalInsuranceNumber: data.nationalInsuranceNumber!,
                     email: data.email!,
+                    phone: data.phone!,
                 }
 
                 const newUser = await signUp({
@@ -58,7 +53,7 @@ const AuthForm = ({type}: {type:string}) => {
                         ...userProfile,
                         $id: newUser.$id,
                         userId: newUser.$id,
-                        name: newUser.name ?? `${userProfile.firstName} ${userProfile.lastName}`
+                        name: newUser.name ?? `${userProfile.firstName} ${userProfile.lastName}`,
                     })
                 }
             }
@@ -113,16 +108,7 @@ const AuthForm = ({type}: {type:string}) => {
                                     <CustomInputForm control={form.control} name='firstName' label='First Name' placeholder="Enter your first name" />
                                     <CustomInputForm control={form.control} name='lastName' label='Last Name' placeholder="Enter your last name" />
                                 </div>
-                                    <CustomInputForm control={form.control} name='address1' label='Address' placeholder="Enter the first line of your address" />
-                                    <CustomInputForm control={form.control} name='city' label='City' placeholder="Enter your city" />
-                                <div className="flex gap-4">
-                                    <CustomInputForm control={form.control} name='postcode' label='Postcode' placeholder="Enter your postcode" />
-                                    <CustomInputForm control={form.control} name='county' label='County' placeholder="Enter your county" />
-                                </div>
-                                <div className="flex gap-4">
-                                    <CustomInputForm control={form.control} name='dateOfBirth' label='Date of Birth' placeholder="DD/MM/YYYY" />
-                                    <CustomInputForm control={form.control} name='nationalInsuranceNumber' label='National Insurance Number' placeholder="AB123456C" />
-                                </div>
+                                <CustomInputForm control={form.control} name='phone' label='Phone Number' placeholder="Enter your phone number" />
                             </>
                         )}
                         <CustomInputForm control={form.control} name='email' label='Email' placeholder='Enter your Email' />

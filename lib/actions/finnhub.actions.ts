@@ -3,6 +3,12 @@
 import { getDateRange, validateArticle, formatArticle } from '@/lib/utils';
 import { POPULAR_STOCK_SYMBOLS } from '@/constants/index';
 import { cache } from 'react';
+import {
+  fetchQuoteForSymbol,
+  fetchCandles,
+  fetchCompanyProfile,
+  fetchCompanyMetrics,
+} from '@/lib/market-data';
 
 const FINNHUB_BASE_URL = 'https://finnhub.io/api/v1';
 const NEXT_PUBLIC_FINNHUB_API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY ?? '';
@@ -178,3 +184,44 @@ export const searchStocks = cache(async (query?: string): Promise<StockWithWatch
     return [];
   }
 });
+
+export async function getQuote(symbol: string) {
+  try {
+    return await fetchQuoteForSymbol(symbol);
+  } catch (error) {
+    console.error(`Error fetching quote for ${symbol}:`, error);
+    return null;
+  }
+}
+
+export async function getStockCandles(
+  symbol: string,
+  resolution: string,
+  from: number,
+  to: number
+) {
+  try {
+    return await fetchCandles(symbol, resolution, from, to);
+  } catch (error) {
+    console.error(`Error fetching candles for ${symbol}:`, error);
+    return null;
+  }
+}
+
+export async function getStockProfile(symbol: string) {
+  try {
+    return await fetchCompanyProfile(symbol);
+  } catch (error) {
+    console.error(`Error fetching profile for ${symbol}:`, error);
+    return null;
+  }
+}
+
+export async function getStockMetrics(symbol: string) {
+  try {
+    return await fetchCompanyMetrics(symbol);
+  } catch (error) {
+    console.error(`Error fetching metrics for ${symbol}:`, error);
+    return null;
+  }
+}

@@ -22,7 +22,7 @@ const BillDebtDetails = ({ item, type }: BillDebtDetailsProps) => {
   const [isSyncing, setIsSyncing] = useState(false)
 
   const getPayoffEstimate = (debt: Debt) => {
-    const balance = Number(debt.totalAmount || 0);
+    const balance = Math.max(0, debt.initialAmount - debt.totalAmountPaid);
     const payment = Number(debt.minimumPayment || Math.max(1, balance / 12)); // avoid divide by zero
     const annualRate = Number(debt.interestRate || 0);
     const monthlyRate = annualRate / 100 / 12;
@@ -95,7 +95,7 @@ const BillDebtDetails = ({ item, type }: BillDebtDetailsProps) => {
         </div>
         <div className="text-right">
           <p className="text-2xl font-bold text-blue-600">
-            {formatAmount(isBill ? (item as Bill).amount : (item as Debt).totalAmount)}
+            {formatAmount(isBill ? (item as Bill).amount : Math.max(0, (item as Debt).initialAmount - (item as Debt).totalAmountPaid))}
           </p>
           <p className="text-xs text-gray-500">
             {isBill ? 'Amount Due' : 'Remaining Balance'}
@@ -139,10 +139,10 @@ const BillDebtDetails = ({ item, type }: BillDebtDetailsProps) => {
               <div className="flex justify-between text-xs">
                 <span>Payoff Progress</span>
                 <span>
-                  {Math.round((((item as Debt).initialAmount! - (item as Debt).totalAmount) / (item as Debt).initialAmount!) * 100)}%
+                  {Math.round(((item as Debt).totalAmountPaid / (item as Debt).initialAmount!) * 100)}%
                 </span>
               </div>
-              <Progress value={(((item as Debt).initialAmount! - (item as Debt).totalAmount) / (item as Debt).initialAmount!) * 100} />
+              <Progress value={((item as Debt).totalAmountPaid / (item as Debt).initialAmount!) * 100} />
             </div>
           )}
 

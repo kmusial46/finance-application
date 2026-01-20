@@ -10,14 +10,9 @@ declare type SearchParamProps = {
 declare type SignUpParams = {
   firstName: string;
   lastName: string;
-  address1: string;
-  city: string;
-  county: string;
-  postcode: string;
-  dateOfBirth: string;
-  nationalInsuranceNumber: string;
   email: string;
   password: string;
+  phone: string;
 };
 
 declare type LoginUser = {
@@ -32,12 +27,7 @@ declare type User = {
   firstName: string;
   lastName: string;
   name: string;
-  address1: string;
-  city: string;
-  county: string;
-  postcode: string;
-  dateOfBirth: string;
-  nationalInsuranceNumber: string;
+  phone: string;
 };
 
 declare type NewUserParams = {
@@ -59,18 +49,38 @@ declare type Account = {
   subtype: string;
   appwriteItemId: string;
   sharableId: string;
+  needsReauth?: boolean;
+  error?: any;
 };
+
+interface ReauthAlertProps {
+  accounts: Account[]
+}
 
 declare type Investment = {
   $id: string;
-  ownerAccountId?: string;
+  userId: string;
   symbol: string;
   name: string;
   pricePerShare: number;
   shareCount: number;
+  purchaseDate: string;
   notes?: string;
   $createdAt: string;
   $updatedAt: string;
+};
+
+declare type Holding = {
+  symbol: string;
+  name: string;
+  totalShares: number;
+  avgCost: number;
+  totalCost: number;
+  currentPrice: number;
+  marketValue: number;
+  totalReturn: number;
+  totalReturnPercent: number;
+  allocation: number;
 };
 
 declare type Transaction = {
@@ -78,26 +88,26 @@ declare type Transaction = {
   $id: string;
   name: string;
   paymentChannel: string;
-  type: string;
   accountId: string;
   amount: number;
   pending: boolean;
   category: string;
   date: string;
   image: string;
-  type: string;
   $createdAt: string;
   channel: string;
   senderBankId: string;
-  receiverBankId: string;
+  type: string;
 };
 
 declare type Bank = {
   $id: string;
   accountId: string;
+  bankId: string;
   accessToken: string;
-  fundingSourceUrl: string;
   userId: string;
+  shareableId?: string;
+  institutionId?: string;
 };
 
 declare type AccountTypes =
@@ -113,17 +123,6 @@ declare type CategoryCount = {
   name: string;
   count: number;
   totalCount: number;
-};
-
-declare type Receiver = {
-  firstName: string;
-  lastName: string;
-};
-
-declare type TransferParams = {
-  sourceFundingSourceUrl: string;
-  destinationFundingSourceUrl: string;
-  amount: string;
 };
 
 declare interface CreditCardProps {
@@ -313,12 +312,12 @@ declare interface getTransactionsProps {
 
 declare interface CreateTransactionProps {
   name: string;
-  amount: string;
+  amount: number;
   senderId: string;
   senderBankId: string;
-  receiverId: string;
-  receiverBankId: string;
-  email: string;
+  category: string;
+  date: string;
+  channel: string;
 }
 
 declare interface getTransactionsByBankIdProps {
@@ -344,7 +343,6 @@ declare interface createBankAccountProps {
   userId: string;
   accountId: string;
   bankId: string;
-  fundingSourceUrl: string;
 }
 
 declare interface getBanksProps {
@@ -361,8 +359,10 @@ declare interface getBankByAccountIdProps {
 
 declare interface CreateInvestmentProps {
   userId: string;
-  input: string;
+  symbol: string;
   shareCount: number;
+  pricePerShare: number;
+  purchaseDate: Date;
   notes?: string | null;
 }
 
@@ -445,7 +445,9 @@ declare type Bill = {
   isAutoDetected: boolean;
   linkedAccountId?: string; // Link to Plaid Account
   status: "active" | "paused";
+  isPaid: boolean;
   nextPaymentDate: string;
+  plaidStreamId?: string;
   $createdAt: string;
   $updatedAt: string;
 };
@@ -454,8 +456,8 @@ declare type Debt = {
   $id: string;
   userId: string;
   name: string;
-  totalAmount: number; // Current remaining balance
-  initialAmount?: number; // For progress calculation
+  totalAmountPaid: number; // Amount paid so far
+  initialAmount?: number; // Total debt amount
   interestRate?: number;
   minimumPayment?: number;
   dueDate?: string;
@@ -483,7 +485,7 @@ declare type CreateBillParams = {
 declare type CreateDebtParams = {
   userId: string;
   name: string;
-  totalAmount: number;
+  totalAmountPaid: number;
   type: string;
   initialAmount?: number;
   interestRate?: number;

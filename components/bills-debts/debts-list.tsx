@@ -22,10 +22,10 @@ const DebtsList = ({ debts }: { debts: Debt[] }) => {
             case 'name':
                 return copy.sort((a, b) => a.name.localeCompare(b.name));
             case 'balance-asc':
-                return copy.sort((a, b) => a.totalAmount - b.totalAmount);
+                return copy.sort((a, b) => (a.initialAmount - a.totalAmountPaid) - (b.initialAmount - b.totalAmountPaid));
             case 'balance-desc':
             default:
-                return copy.sort((a, b) => b.totalAmount - a.totalAmount);
+                return copy.sort((a, b) => (b.initialAmount - b.totalAmountPaid) - (a.initialAmount - a.totalAmountPaid));
         }
     }, [debts, sort]);
 
@@ -42,11 +42,11 @@ const DebtsList = ({ debts }: { debts: Debt[] }) => {
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                                                 {sortedDebts.map((debt) => {
                                 const progress = debt.initialAmount 
-                                        ? ((debt.initialAmount - debt.totalAmount) / debt.initialAmount) * 100 
+                                        ? (debt.totalAmountPaid / debt.initialAmount) * 100 
                                         : 0;
 
                                 // Payoff estimate
-                                const balance = Number(debt.totalAmount || 0);
+                                const balance = Math.max(0, debt.initialAmount - debt.totalAmountPaid);
                                 const payment = Number(debt.minimumPayment || (balance / 12)); // default to 12-month payoff
                                 const annualRate = Number(debt.interestRate || 0);
                                 const monthlyRate = annualRate / 100 / 12;
@@ -90,7 +90,7 @@ const DebtsList = ({ debts }: { debts: Debt[] }) => {
                                     <div>
                                         <div className="flex justify-between text-sm mb-2">
                                             <span className="text-gray-500">Remaining Balance</span>
-                                            <span className="font-semibold text-gray-900">{formatAmount(debt.totalAmount)}</span>
+                                            <span className="font-semibold text-gray-900">{formatAmount(balance)}</span>
                                         </div>
                                         <Progress value={progress} className="h-2" />
                                         <div className="flex justify-between text-xs text-gray-400 mt-1">

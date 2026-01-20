@@ -15,19 +15,20 @@ const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
 const DebtSummary = ({ debts }: DebtSummaryProps) => {
   const metrics = React.useMemo(() => {
-    const totalDebt = debts.reduce((sum, d) => sum + d.totalAmount, 0);
-    const totalInitial = debts.reduce((sum, d) => sum + (d.initialAmount || d.totalAmount), 0);
+    const totalInitial = debts.reduce((sum, d) => sum + d.initialAmount, 0);
+    const paidAmount = debts.reduce((sum, d) => sum + d.totalAmountPaid, 0);
+    const totalDebt = Math.max(0, totalInitial - paidAmount);
     const nextPayment = debts.reduce((sum, d) => sum + (d.minimumPayment || 0), 0);
     
     // Progress
-    const paidAmount = totalInitial - totalDebt;
     const progress = totalInitial > 0 ? (paidAmount / totalInitial) * 100 : 0;
 
     // Group by type for Pie Chart
     const byType: Record<string, number> = {};
     debts.forEach(d => {
       const type = d.type.replace('_', ' ');
-      byType[type] = (byType[type] || 0) + d.totalAmount;
+      const currentBalance = Math.max(0, d.initialAmount - d.totalAmountPaid);
+      byType[type] = (byType[type] || 0) + currentBalance;
     });
     const pieData = Object.entries(byType).map(([name, value]) => ({ name, value }));
 

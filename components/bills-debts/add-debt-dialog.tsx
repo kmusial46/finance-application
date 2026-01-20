@@ -36,8 +36,7 @@ import { useEffect } from "react"
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
-  totalAmount: z.coerce.number().min(0.01, "Amount must be greater than 0"),
-  initialAmount: z.coerce.number().optional(),
+  currentBalance: z.coerce.number().min(0, "Balance cannot be negative"),
   interestRate: z.coerce.number().optional(),
   minimumPayment: z.coerce.number().optional(),
   dueDate: z.string().optional(),
@@ -64,7 +63,7 @@ export function AddDebtDialog({ userId }: { userId: string }) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
-      totalAmount: 0,
+      currentBalance: 0,
       type: "credit_card" as "credit_card" | "loan" | "bnpl" | "other",
       linkedAccountId: "none",
     },
@@ -73,11 +72,12 @@ export function AddDebtDialog({ userId }: { userId: string }) {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true)
     try {
+      // When creating, we assume the current balance is the initial amount and nothing is paid yet
       await createDebt({
         userId,
         name: values.name,
-        totalAmount: values.totalAmount,
-        initialAmount: values.initialAmount || values.totalAmount,
+        totalAmountPaid: 0,
+        initialAmount: values.currentBalance,
         interestRate: values.interestRate,
         minimumPayment: values.minimumPayment,
         dueDate: values.dueDate ? new Date(values.dueDate).toISOString() : undefined,
@@ -96,7 +96,7 @@ export function AddDebtDialog({ userId }: { userId: string }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="bg-white border-gray-300 text-gray-700 hover:bg-gray-50">
+        <Button className="bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-indigo-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-200 font-semibold px-6 py-2">
           + Add Debt
         </Button>
       </DialogTrigger>
@@ -126,7 +126,7 @@ export function AddDebtDialog({ userId }: { userId: string }) {
             <div className="grid grid-cols-2 gap-4">
                 <FormField
                 control={form.control}
-                name="totalAmount"
+                name="currentBalance"
                 render={({ field }) => (
                     <FormItem>
                     <FormLabel>Current Balance</FormLabel>
@@ -170,7 +170,7 @@ export function AddDebtDialog({ userId }: { userId: string }) {
                     <FormItem>
                     <FormLabel>APR % (Optional)</FormLabel>
                     <FormControl>
-                        <Input type="number" step="0.01" placeholder="19.99" {...field} value={field.value as number} />
+                        <Input type="number" step="0.01" placeholder="19.99" {...field} value={field.value ?? ''} />
                     </FormControl>
                     <FormMessage />
                     </FormItem>
@@ -183,7 +183,7 @@ export function AddDebtDialog({ userId }: { userId: string }) {
                     <FormItem>
                     <FormLabel>Min Payment (Optional)</FormLabel>
                     <FormControl>
-                        <Input type="number" step="0.01" placeholder="0.00" {...field} value={field.value as number} />
+                        <Input type="number" step="0.01" placeholder="0.00" {...field} value={field.value ?? ''} />
                     </FormControl>
                     <FormMessage />
                     </FormItem>
@@ -198,7 +198,7 @@ export function AddDebtDialog({ userId }: { userId: string }) {
                 <FormItem>
                 <FormLabel>Next Due Date (Optional)</FormLabel>
                 <FormControl>
-                    <Input type="date" {...field} />
+                    <Input type="date" {...field} value={field.value ?? ''} />
                 </FormControl>
                 <FormMessage />
                 </FormItem>

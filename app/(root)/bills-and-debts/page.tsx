@@ -11,6 +11,7 @@ import { AddBillDialog } from '@/components/bills-debts/add-bill-dialog';
 import { AddDebtDialog } from '@/components/bills-debts/add-debt-dialog';
 import { ScanBillsPrompt } from '@/components/bills-debts/scan-bills-prompt';
 import { ScanBillsButton } from '@/components/bills-debts/scan-bills-button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const BillsAndDebts = async () => {
   const loggedIn = await getLoggedInUser();
@@ -44,41 +45,67 @@ const BillsAndDebts = async () => {
             subtext="Manage your recurring payments and track your debt payoff progress."
             user={loggedIn.firstName}
           />
-          <div className="flex gap-2">
-            <ScanBillsButton userId={loggedIn.$id} />
-            <AddBillDialog userId={loggedIn.$id} />
-            <AddDebtDialog userId={loggedIn.$id} />
-          </div>
         </header>
 
         <ScanBillsPrompt userId={loggedIn.$id} billsCount={bills.length} />
 
-        <div className="space-y-8">
-          {/* Top row: Metrics and Trend */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="col-span-1">
-              <BillsMetrics bills={bills} />
-            </div>
-            <div className="col-span-1">
-              <BillsTrendChart data={months} />
-            </div>
+        <Tabs defaultValue="bills" className="w-fit">
+          <div className="inline-block p-4 bg-blue-100 rounded-lg border border-blue-200 shadow-sm mb-6">
+            <TabsList className="grid w-full max-w-2xl grid-cols-2 h-12 bg-white/70 backdrop-blur-sm shadow-md">
+              <TabsTrigger 
+                value="bills" 
+                className="text-base font-bold data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-blue-700 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200"
+              >
+                Bills & Subscriptions
+              </TabsTrigger>
+              <TabsTrigger 
+                value="debts"
+                className="text-base font-bold data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-blue-700 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200"
+              >
+                Debts & Loans
+              </TabsTrigger>
+            </TabsList>
           </div>
 
-          <div className="lg:flex lg:items-start lg:gap-6">
-            <main className="lg:flex-1 lg:pr-4">
-              <h2 className="text-2xl font-semibold text-gray-900">Bills & Subscriptions</h2>
-              <div className="mt-4">
-                <BillsList bills={bills} />
+          <TabsContent value="bills" className="space-y-8 mt-6">
+            <div className="flex flex-wrap items-center gap-3 mb-6">
+              <div className="transform transition-all hover:scale-105">
+                <AddBillDialog userId={loggedIn.$id} />
               </div>
-            </main>
-            <aside className="lg:w-96 lg:flex-none">
-              <div className="sticky top-24">
-                <BillsAlerts bills={bills} />
-              </div>
-            </aside>
-          </div>
+              <ScanBillsButton userId={loggedIn.$id} />
+            </div>
 
-          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="col-span-1">
+                <BillsMetrics bills={bills} />
+              </div>
+              <div className="col-span-1">
+                <BillsTrendChart data={months} />
+              </div>
+            </div>
+
+            <div className="lg:flex lg:items-start lg:gap-6">
+              <main className="lg:flex-1 lg:pr-4">
+                <h2 className="text-2xl font-semibold text-gray-900">Bills & Subscriptions</h2>
+                <div className="mt-4">
+                  <BillsList bills={bills} />
+                </div>
+              </main>
+              <aside className="lg:w-96 lg:flex-none">
+                <div className="sticky top-24">
+                  <BillsAlerts bills={bills} />
+                </div>
+              </aside>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="debts" className="space-y-6 mt-6">
+            <div className="flex flex-wrap items-center gap-3 mb-6">
+              <div className="transform transition-all hover:scale-105">
+                <AddDebtDialog userId={loggedIn.$id} />
+              </div>
+            </div>
+
             <h2 className="text-2xl font-semibold text-gray-900">Debts & Loans</h2>
 
             {/* Mobile: collapsible summary above cards */}
@@ -98,8 +125,8 @@ const BillsAndDebts = async () => {
                 <DebtSummary debts={debts} />
               </aside>
             </div>
-          </div>
-        </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </section>
   );

@@ -54,6 +54,7 @@ const RightSidebar = ({user, transactions, banks}: RightSidebarProps) => {
                             account={banks[0]}
                             username={user.name}
                             showBalance={false}
+                            showRemoveButton={false}
                         />
                     </div>
                     {banks[1] && (
@@ -63,6 +64,7 @@ const RightSidebar = ({user, transactions, banks}: RightSidebarProps) => {
                                 account={banks[1]}
                                 username={user.name}
                                 showBalance={false}
+                                showRemoveButton={false}
                             />
                         </div>
                     )}

@@ -9,8 +9,11 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { createInvestment } from '@/lib/actions/investment.actions';
+import { searchStocks, getQuote } from '@/lib/actions/finnhub.actions';
 import { investmentFormSchema } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
+import { Loader2 } from 'lucide-react';
+import { useEffect } from 'react';
 
 type InvestmentFormValues = z.infer<typeof investmentFormSchema>;
 
@@ -23,6 +26,10 @@ const InvestmentForm = ({ userId }: InvestmentFormProps) => {
   const [serverError, setServerError] = useState<string | null>(null);
   const [serverSuccess, setServerSuccess] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  
+  const [suggestions, setSuggestions] = useState<StockWithWatchlistStatus[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
 
   const form = useForm<InvestmentFormValues>({
     resolver: zodResolver(investmentFormSchema) as Resolver<InvestmentFormValues>,
@@ -31,6 +38,32 @@ const InvestmentForm = ({ userId }: InvestmentFormProps) => {
       shareCount: '',
     },
   });
+
+  const queryValue = form.watch('query');
+
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      if (!queryValue || queryValue.length < 2) {
+        setSuggestions([]);
+        setShowSuggestions(false);
+        return;
+      }
+
+      setIsLoadingSuggestions(true);
+      try {
+        const results = await searchStocks(queryValue);
+        setSuggestions(results);
+        setShowSuggestions(true);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setIsLoadingSuggestions(false);
+      }
+    };
+
+    const timeoutId = setTimeout(fetchSuggestions, 300);
+    return () => clearTimeout(timeoutId);
+  }, [queryValue]);
 
   const onSubmit: SubmitHandler<InvestmentFormValues> = (values) => {
     setServerError(null);
@@ -44,10 +77,18 @@ const InvestmentForm = ({ userId }: InvestmentFormProps) => {
         return;
       }
 
+      const quote = await getQuote(values.query);
+      if (!quote) {
+        setServerError('Invalid symbol or unable to fetch price.');
+        return;
+      }
+
       const response = await createInvestment({
         userId,
-        input: values.query,
+        symbol: values.query,
         shareCount: shares,
+        pricePerShare: quote.price,
+        purchaseDate: new Date(),
       });
 
       if (response?.error) {
@@ -80,10 +121,43 @@ const InvestmentForm = ({ userId }: InvestmentFormProps) => {
               control={form.control}
               name="query"
               render={({ field }) => (
-                <FormItem className="sm:col-span-2">
+                <FormItem className="sm:col-span-2 relative">
                   <FormLabel>Ticker or Company Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="AAPL or Apple Inc." {...field} />
+                    <div className="relative">
+                      <Input 
+                        placeholder="AAPL or Apple Inc." 
+                        {...field} 
+                        autoComplete="off"
+                        onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                        onFocus={() => {
+                          if (queryValue && queryValue.length >= 2) setShowSuggestions(true);
+                        }}
+                      />
+                      {showSuggestions && (suggestions.length > 0 || isLoadingSuggestions) && (
+                        <div className="absolute z-50 w-full bg-white border rounded-md shadow-lg mt-1 max-h-60 overflow-auto">
+                          {isLoadingSuggestions ? (
+                            <div className="p-2 text-center text-sm text-gray-500 flex items-center justify-center gap-2">
+                              <Loader2 className="h-4 w-4 animate-spin" /> Loading...
+                            </div>
+                          ) : (
+                            suggestions.map((stock) => (
+                              <div
+                                key={stock.symbol}
+                                className="p-2 hover:bg-gray-100 cursor-pointer text-sm flex justify-between items-center"
+                                onClick={() => {
+                                  form.setValue('query', stock.symbol);
+                                  setShowSuggestions(false);
+                                }}
+                              >
+                                <span className="font-medium">{stock.symbol}</span>
+                                <span className="text-gray-500 truncate max-w-[200px]">{stock.name}</span>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>

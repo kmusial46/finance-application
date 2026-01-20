@@ -206,6 +206,7 @@ export const createBill = async (bill: CreateBillParams) => {
         isAutoDetected: bill.isAutoDetected || false,
         linkedAccountId: bill.linkedAccountId || null,
         status: bill.status || 'active',
+        isPaid: false,
         nextPaymentDate: bill.nextPaymentDate,
       }
     );
@@ -228,8 +229,8 @@ export const createDebt = async (debt: CreateDebtParams) => {
       {
         userId: debt.userId,
         name: debt.name,
-        totalAmount: debt.totalAmount,
-        initialAmount: debt.initialAmount || debt.totalAmount,
+        totalAmountPaid: debt.totalAmountPaid,
+        initialAmount: debt.initialAmount || debt.totalAmountPaid,
         interestRate: debt.interestRate || null,
         minimumPayment: debt.minimumPayment || null,
         dueDate: debt.dueDate || null,
@@ -300,21 +301,19 @@ export const deleteDebt = async (debtId: string) => {
     }
 }
 
-export const makeDebtPayment = async (debtId: string, amount: number, currentBalance: number, paymentDate?: string) => {
+export const makeDebtPayment = async (debtId: string, amount: number, paymentDate?: string) => {
   try {
     const { database } = await createAdminClient();
-    const newBalance = currentBalance - amount;
-
-    // Ensure balance doesn't go below 0
-    const finalBalance = newBalance < 0 ? 0 : newBalance;
-
-    const updatePayload: any = { totalAmount: finalBalance };
+    
+    const debt = await database.getDocument(DATABASE_ID, DEBTS_COLLECTION_ID, debtId);
+    const currentPaid = debt.totalAmountPaid || 0;
+    const newPaid = currentPaid + amount;
 
     const updatedDebt = await database.updateDocument(
       DATABASE_ID,
       DEBTS_COLLECTION_ID,
       debtId,
-      updatePayload
+      { totalAmountPaid: newPaid }
     );
 
     revalidatePath('/bills-and-debts');
@@ -359,6 +358,7 @@ export const markBillAsPaid = async (billId: string, currentNextPaymentDate: str
       billId,
       {
         nextPaymentDate: nextDate.toISOString(),
+        isPaid: false,
       }
     );
 
@@ -392,12 +392,16 @@ export const syncDebtWithPlaid = async (debtId: string, linkedAccountId: string)
         const linkedAccount = result.data.find((acc: any) => acc.appwriteItemId === linkedAccountId || acc.id === linkedAccountId);
 
         if (linkedAccount) {
+            // Calculate paid amount based on initial amount and current balance
+            // If current balance > initial amount (e.g. interest), paid is 0
+            const newPaid = Math.max(0, debt.initialAmount - linkedAccount.currentBalance);
+            
             const updatedDebt = await database.updateDocument(
                 DATABASE_ID,
                 DEBTS_COLLECTION_ID,
                 debtId,
                 {
-                    totalAmount: linkedAccount.currentBalance
+                    totalAmountPaid: newPaid
                 }
             );
             revalidatePath('/bills-and-debts');

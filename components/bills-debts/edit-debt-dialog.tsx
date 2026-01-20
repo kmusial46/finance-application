@@ -35,8 +35,7 @@ import { Loader2 } from "lucide-react"
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
-  totalAmount: z.coerce.number().min(0, "Amount cannot be negative"),
-  initialAmount: z.coerce.number().optional(),
+  currentBalance: z.coerce.number().min(0, "Balance cannot be negative"),
   interestRate: z.coerce.number().optional(),
   minimumPayment: z.coerce.number().optional(),
   dueDate: z.string().optional(),
@@ -51,8 +50,7 @@ export function EditDebtDialog({ debt }: { debt: Debt }) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: debt.name,
-      totalAmount: debt.totalAmount,
-      initialAmount: debt.initialAmount,
+      currentBalance: Math.max(0, debt.initialAmount - debt.totalAmountPaid),
       interestRate: debt.interestRate,
       minimumPayment: debt.minimumPayment,
       dueDate: debt.dueDate ? new Date(debt.dueDate).toISOString().split('T')[0] : undefined,
@@ -63,10 +61,18 @@ export function EditDebtDialog({ debt }: { debt: Debt }) {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true)
     try {
+      // If user updates balance, we adjust totalAmountPaid.
+      // We keep the original initialAmount if possible, unless new balance > initialAmount.
+      let initial = debt.initialAmount || values.currentBalance;
+      if (values.currentBalance > initial) {
+        initial = values.currentBalance;
+      }
+      const paid = Math.max(0, initial - values.currentBalance);
+
       await updateDebt(debt.$id, {
         name: values.name,
-        totalAmount: values.totalAmount,
-        initialAmount: values.initialAmount,
+        totalAmountPaid: paid,
+        initialAmount: initial,
         interestRate: values.interestRate,
         minimumPayment: values.minimumPayment,
         dueDate: values.dueDate ? new Date(values.dueDate).toISOString() : undefined,
@@ -113,12 +119,12 @@ export function EditDebtDialog({ debt }: { debt: Debt }) {
             <div className="grid grid-cols-2 gap-4">
                 <FormField
                 control={form.control}
-                name="totalAmount"
+                name="currentBalance"
                 render={({ field }) => (
                     <FormItem>
                     <FormLabel>Current Balance</FormLabel>
                     <FormControl>
-                        <Input type="number" step="0.01" placeholder="0.00" {...field} />
+                        <Input type="number" step="0.01" placeholder="0.00" {...field} value={field.value ?? ''} />
                     </FormControl>
                     <FormMessage />
                     </FormItem>
@@ -157,7 +163,7 @@ export function EditDebtDialog({ debt }: { debt: Debt }) {
                     <FormItem>
                     <FormLabel>APR % (Optional)</FormLabel>
                     <FormControl>
-                        <Input type="number" step="0.01" placeholder="19.99" {...field} />
+                        <Input type="number" step="0.01" placeholder="19.99" {...field} value={field.value ?? ''} />
                     </FormControl>
                     <FormMessage />
                     </FormItem>
@@ -170,7 +176,7 @@ export function EditDebtDialog({ debt }: { debt: Debt }) {
                     <FormItem>
                     <FormLabel>Min Payment (Optional)</FormLabel>
                     <FormControl>
-                        <Input type="number" step="0.01" placeholder="0.00" {...field} />
+                        <Input type="number" step="0.01" placeholder="0.00" {...field} value={field.value ?? ''} />
                     </FormControl>
                     <FormMessage />
                     </FormItem>
@@ -185,7 +191,7 @@ export function EditDebtDialog({ debt }: { debt: Debt }) {
                 <FormItem>
                 <FormLabel>Next Due Date (Optional)</FormLabel>
                 <FormControl>
-                    <Input type="date" {...field} />
+                    <Input type="date" {...field} value={field.value ?? ''} />
                 </FormControl>
                 <FormMessage />
                 </FormItem>

@@ -6,7 +6,7 @@ const StockMarket = () => {
   const scriptUrl = 'https://s3.tradingview.com/external-embedding/embed-widget-';
 
   return (
-    <div className="flex flex-col min-h-screen home-wrapper ml-5 mt-5">
+    <div className="flex flex-col min-h-screen home-wrapper ml-5 mt-5 pr-6 xl:pr-12">
       <section className="w-full mb-6">
         <div className="w-full flex items-center justify-center">
           <SearchCommand
@@ -16,8 +16,8 @@ const StockMarket = () => {
           />
         </div>
       </section>
-      <section className='grid w-full gap-8 home-section mr-5'>
-        <div className='md:col-span-1 xl:col-span-1'>
+      <section className='grid grid-cols-1 md:grid-cols-2 w-full gap-8 home-section mr-5 pb-12'>
+        <div className='md:col-span-1'>
           <TradingViewWidget
             title='Market Overview'
             scriptUrl={`${scriptUrl}market-overview.js`}
@@ -26,17 +26,7 @@ const StockMarket = () => {
             height={600}
           />
         </div>
-        <div className='h-full md:col-span-1 xl:col-span-1'>
-          <TradingViewWidget
-            scriptUrl={`${scriptUrl}timeline.js`}
-            config={TOP_STORIES_WIDGET_CONFIG}
-            className='custom-chart'
-            height={600}
-          />
-        </div>
-      </section>
-      <section className='grid w-full gap-8 home-section mr-5'>
-        <div className='md:col-span-1 xl:col-span-2'>
+        <div className='md:col-span-1'>
           <TradingViewWidget
               title='Stock Heatmap'
               scriptUrl={`${scriptUrl}stock-heatmap.js`}
@@ -44,7 +34,15 @@ const StockMarket = () => {
               height={600}
             />
         </div>
-        <div className='h-full md:col-span-1 xl:col-span-2'>
+        <div className='h-full md:col-span-1'>
+          <TradingViewWidget
+            scriptUrl={`${scriptUrl}timeline.js`}
+            config={TOP_STORIES_WIDGET_CONFIG}
+            className='custom-chart'
+            height={600}
+          />
+        </div>
+        <div className='h-full md:col-span-1'>
           <TradingViewWidget
               scriptUrl={`${scriptUrl}market-quotes.js`}
               config={MARKET_DATA_WIDGET_CONFIG}
