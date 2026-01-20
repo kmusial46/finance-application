@@ -1,4 +1,4 @@
-import RecentTransactions from '@/components/transactions/recent-transactions';
+import AccountBreakdown from '@/components/overview/account-breakdown';
 import HeaderBox from '@/components/ui/header-box';
 import RightSidebar from '@/components/sidebars/right-sidebar';
 import TotalBalanceBox from '@/components/ui/total-balance-box';
@@ -82,11 +82,8 @@ const Home = async ({ searchParams }: SearchParamProps) => {
                     />
                 </header>
 
-                <RecentTransactions 
-                    accounts={validAccounts}
+                <AccountBreakdown 
                     transactions={account?.transactions}
-                    appwriteItemId={appwriteItemId}
-                    page={currentPage}
                 />
             </div>
 

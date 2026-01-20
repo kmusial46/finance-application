@@ -54,6 +54,38 @@ export const signUp = async (userData: SignUpParams) => {
     try {
         const { account, database, user } = await createAdminClient()
 
+        // Check for duplicate email and phone in database first
+        const errors: { field: string; message: string }[] = []
+        
+        if (DATABASE_ID && USER_COLLECTION_ID) {
+            // Check both email and phone in parallel
+            const [existingEmailDocs, existingPhoneDocs] = await Promise.all([
+                database.listDocuments(
+                    DATABASE_ID,
+                    USER_COLLECTION_ID,
+                    [Query.equal('email', email)]
+                ),
+                database.listDocuments(
+                    DATABASE_ID,
+                    USER_COLLECTION_ID,
+                    [Query.equal('phone', phone)]
+                )
+            ])
+
+            if (existingEmailDocs.total > 0) {
+                errors.push({ field: 'email', message: 'An account with this email already exists' })
+            }
+
+            if (existingPhoneDocs.total > 0) {
+                errors.push({ field: 'phone', message: 'An account with this phone number already exists' })
+            }
+
+            // If there are validation errors, return them
+            if (errors.length > 0) {
+                return parseStringify({ errors })
+            }
+        }
+
         try {
             newUserAccount = await account.create(
                 ID.unique(),
@@ -63,13 +95,7 @@ export const signUp = async (userData: SignUpParams) => {
             )
         } catch (createError: any) {
             if (createError?.code === 409) {
-                console.log('User already exists in Auth, fetching details...')
-                const existingUsers = await user.list([Query.equal('email', email)])
-                if (existingUsers.total > 0) {
-                    newUserAccount = existingUsers.users[0]
-                } else {
-                    throw createError
-                }
+                return parseStringify({ errors: [{ field: 'email', message: 'An account with this email already exists' }] })
             } else {
                 throw createError
             }

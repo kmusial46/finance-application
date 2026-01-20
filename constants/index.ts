@@ -380,6 +380,12 @@ export const transactionCategoryStyles = {
     textColor: "text-cyan-700",
     chipBackgroundColor: "bg-inherit",
   },
+  "Travel": {
+    borderColor: "border-cyan-600",
+    backgroundColor: "bg-cyan-500",
+    textColor: "text-cyan-700",
+    chipBackgroundColor: "bg-inherit",
+  },
   "Rent And Utilities": {
     borderColor: "border-lime-600",
     backgroundColor: "bg-lime-500",

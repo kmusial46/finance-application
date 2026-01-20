@@ -48,6 +48,25 @@ const AuthForm = ({type}: {type:string}) => {
                     password: data.password!
                 })
 
+                if (newUser?.errors) {
+                    // Set errors on specific fields
+                    newUser.errors.forEach((err: { field: string; message: string }) => {
+                        form.setError(err.field as any, {
+                            type: 'manual',
+                            message: err.message
+                        })
+                    })
+                    return
+                }
+
+                if (newUser?.error) {
+                    form.setError('root', {
+                        type: 'manual',
+                        message: newUser.error
+                    })
+                    return
+                }
+
                 if (newUser?.$id) {
                     setUser({
                         ...userProfile,
