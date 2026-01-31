@@ -57,14 +57,15 @@ const MobileNav = ({ user }: MobileNavProps) => {
                             "bg-bank-gradient": isActive,
                         })}
                         >
-                        <div className="relative size-6">
+                        <div className="flex items-center justify-center w-6 h-6">
                             <Image
-                            src={item.imgURL}
-                            alt={item.label}
-                            fill
-                            className={cn({
-                                "brightness-[3] invert-0": isActive,
-                            })}
+                              src={item.imgURL}
+                              alt={item.label}
+                              width={24}
+                              height={24}
+                              className={cn({
+                                "filter brightness-0 invert": isActive,
+                              })}
                             />
                         </div>
                         <p className={cn("text-16 font-semibold text-black-2", {

@@ -257,7 +257,20 @@
   }
 
   .mobilenav-sheet_close {
-    @apply flex gap-3 items-center p-4 rounded-lg w-full max-w-60;
+    @apply flex gap-3 items-center p-4 rounded-lg w-full max-w-60 min-h-[48px];
+    position: relative;
+    z-index: 0;
+  }
+
+  .mobilenav-sheet_close img {
+    display: block;
+    width: 24px;
+    height: 24px;
+  }
+
+  /* When an item is active (bg-bank-gradient), force the icon to render white */
+  .mobilenav-sheet_close.bg-bank-gradient img {
+    filter: brightness(0) invert(1);
   }
 
   /* PlaidLink */

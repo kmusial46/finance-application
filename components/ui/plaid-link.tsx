@@ -75,12 +75,12 @@ const PlaidLink = ({user, variant}: PlaidLinkProps) => {
             height={24}
             className='brightness-0 invert'
           />
-          <p className='hidden text-[16px] font-semibold text-white xl:block'>
+          <p className='text-[16px] font-semibold text-white'>
             Connect Bank
           </p>
         </Button>
         ): variant === 'ghost' ? (
-          <Button onClick={() => open()}  variant='ghost'
+            <Button onClick={() => open()}  variant='ghost'
             className='plaidlink-ghost'>
             <Image 
                 src="/icons/connect-bank.svg"
@@ -88,7 +88,7 @@ const PlaidLink = ({user, variant}: PlaidLinkProps) => {
                 width={24}
                 height={24}
               />
-            <p className='hidden text-[16px] font-semibold text-black-2 xl:block'>
+            <p className='text-[16px] font-semibold text-black-2'>
               Connect Bank
             </p>
           </Button>
@@ -101,7 +101,7 @@ const PlaidLink = ({user, variant}: PlaidLinkProps) => {
                   width={24}
                   height={24}
                 />
-              <p className='hidden text-[16px] font-semibold text-black-2 xl:block'>
+              <p className='text-[16px] font-semibold text-black-2'>
                 Connect Bank
               </p>
             </Button>
