@@ -105,8 +105,8 @@ export const topCategoryStyles = {
     icon: "/icons/government.svg"
   },
   "Transfer Out": {
-    bg: "bg-gray-25",
-    circleBg: "bg-gray-100",
+    bg: "bg-gray-100",
+    circleBg: "bg-gray-25",
     text: {
       main: "text-gray-700",
       count: "text-gray-600"

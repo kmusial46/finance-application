@@ -206,12 +206,32 @@ export const getTransactionStatus = (date: Date) => {
   return date > twoDaysAgo ? "Processing" : "Success";
 };
 
+// UK phone number validation - supports formats like:
+// 07123456789, +447123456789, 0207123456, 01234567890, etc.
+const isValidUKPhone = (value: string) => {
+  // Remove spaces, dashes, and parentheses
+  const cleaned = value.replace(/[\s\-()]/g, '');
+  
+  // UK phone patterns:
+  // Mobile: 07xxx xxxxxx (11 digits starting with 07)
+  // Landline: 01xxx xxxxx or 02x xxxx xxxx (10-11 digits)
+  // International: +447xxx xxxxxx
+  const ukPhoneRegex = /^(?:(?:\+44|0044|0)(?:7\d{9}|[1-9]\d{9,10}))$/;
+  
+  return ukPhoneRegex.test(cleaned);
+};
+
 export const authFormSchema = (type: string) => z.object({
-  email: z.email({ message: "Please enter a valid email address." }),
-  password: z.string().min(8, 'Password must be at least 8 characters.'),
-  firstName: type === 'sign-in' ? z.string().optional() : z.string().min(2).max(30),
-  lastName: type === 'sign-in' ? z.string().optional() : z.string().min(2).max(30),
-  phone: type === 'sign-in' ? z.string().optional() : z.string().min(10, "Enter a valid phone number").max(15),
+  email: z.string().nonempty("Please enter your email").email({ message: "Please enter a valid email address." }),
+  password: z.string().nonempty("Please enter your password").min(8, 'Password must be at least 8 characters.'),
+  firstName: type === 'sign-in' ? z.string().optional() : z.string().nonempty("Please enter your first name").min(2, "Please enter your first name").max(30, "First name must not exceed 30 characters."),
+  lastName: type === 'sign-in' ? z.string().optional() : z.string().nonempty("Please enter your last name").min(2, "Please enter your last name").max(30, "Last name must not exceed 30 characters."),
+  phone: type === 'sign-in' 
+    ? z.string().optional() 
+    : z.string()
+        .nonempty("Please enter your phone number")
+        .min(10, "Phone number must be at least 10 digits.")
+        .refine(isValidUKPhone, { message: "Please enter a valid UK phone number (e.g., 07123456789 or +447123456789)." }),
 });
 
 const isNumericString = (value: string) => {

@@ -137,11 +137,13 @@ function FormDescription({ className, ...props }: React.ComponentProps<"p">) {
 
 function FormMessage({ className, ...props }: React.ComponentProps<"p">) {
   const { error, formMessageId } = useFormField()
-  const body = error ? String(error?.message ?? "") : props.children
+  // Prefer explicit error.message, then any Zod `types` (field-specific messages),
+  // then fallback to the raw error string so users don't see vague "Invalid input".
+  const body = error
+    ? (error.message ?? (error.types ? Object.values(error.types).join(', ') : String(error)))
+    : props.children
 
-  if (!body) {
-    return null
-  }
+  if (!body) return null
 
   return (
     <p
