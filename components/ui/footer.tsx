@@ -3,6 +3,7 @@
 import { logoutAccount } from '@/lib/actions/user.actions'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 const Footer = ({user, type = 'desktop'}: FooterProps) => {
     const router = useRouter()
@@ -14,16 +15,6 @@ const Footer = ({user, type = 'desktop'}: FooterProps) => {
 
   return (
     <footer className='footer'>
-        <div className={type === 'mobile' ? 'footer_name-mobile' : 'footer_name'}>
-            <p className='text-xl font-bold text-gray-700'>
-                {
-                  // user may exist but firstName can be undefined; guard the access.
-                  // Prefer firstName initial, fall back to first word of `name`, else empty string.
-                  user?.firstName?.[0] ?? user?.name?.split(' ')[0]?.[0] ?? ''
-                }
-            </p>
-        </div>
-
         <div className={type === 'mobile' ? 'footer_email-mobile' : 'footer_email'}>
             <h1 className='text-14 truncate font-semibold text-gray-700'>
                 {user?.firstName ?? user?.name?.split(' ')[0] ?? ''} {user?.lastName ?? user?.name?.split(' ')[1] ?? ''}
@@ -33,12 +24,21 @@ const Footer = ({user, type = 'desktop'}: FooterProps) => {
             </p>
         </div>
 
-        <div className='footer_image' onClick={handleLogOut}>
-            <Image 
-                src="icons/logout.svg"
-                fill
-                alt='logout'
-            />
+        <div className='flex items-center gap-4'>
+            <Link href='/settings' className='footer_image'>
+                <Image 
+                    src="/icons/settings.svg"
+                    fill
+                    alt='settings'
+                />
+            </Link>
+            <div className='footer_image' onClick={handleLogOut}>
+                <Image 
+                    src="/icons/logout.svg"
+                    fill
+                    alt='logout'
+                />
+            </div>
         </div>
     </footer>
   )

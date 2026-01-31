@@ -137,7 +137,7 @@ export const signUp = async (userData: SignUpParams) => {
                     await database.createDocument(
                         DATABASE_ID!,
                         USER_COLLECTION_ID!,
-                        ID.unique(),
+                        newUserAccount.$id,
                         userDoc
                     )
                     console.log('User document created successfully')
@@ -405,6 +405,149 @@ export const getBank = async ({ documentId }: getBankProps) => {
         return parseStringify(bank)
     } catch (error) {
         console.error('Error getting banks:', error)
+        return parseStringify({ error: String(error) })
+    }
+}
+
+export const deleteUserAccount = async ({ userId }: { userId: string }) => {
+    try {
+        const { database, user } = await createAdminClient()
+
+        const {
+            APPWRITE_BILLS_COLLECTION_ID: BILLS_COLLECTION_ID,
+            APPWRITE_DEBTS_COLLECTION_ID: DEBTS_COLLECTION_ID,
+            APPWRITE_TRANSACTION_COLLECTION_ID: TRANSACTION_COLLECTION_ID,
+            APPWRITE_INVESTMENT_COLLECTION_ID: INVESTMENT_COLLECTION_ID,
+            APPWRITE_GOAL_COLLECTION_ID: GOAL_COLLECTION_ID,
+            APPWRITE_GOAL_TRANSACTION_COLLECTION_ID: GOAL_TRANSACTION_COLLECTION_ID,
+        } = process.env
+
+        // 1) Delete all bank documents and related transactions
+        if (DATABASE_ID && BANK_COLLECTION_ID) {
+            const banks = await database.listDocuments(
+                DATABASE_ID,
+                BANK_COLLECTION_ID,
+                [Query.equal('userId', userId)]
+            )
+
+            for (const bank of banks.documents) {
+                // Delete transactions referencing this bank (by senderBankId or accountId)
+                if (DATABASE_ID && TRANSACTION_COLLECTION_ID) {
+                    const txBySender = await database.listDocuments(
+                        DATABASE_ID,
+                        TRANSACTION_COLLECTION_ID,
+                        [Query.equal('senderBankId', bank.$id)]
+                    )
+                    for (const tx of txBySender.documents) {
+                        await database.deleteDocument(DATABASE_ID, TRANSACTION_COLLECTION_ID, tx.$id)
+                    }
+
+                    const txByAccount = await database.listDocuments(
+                        DATABASE_ID,
+                        TRANSACTION_COLLECTION_ID,
+                        [Query.equal('accountId', bank.accountId)]
+                    )
+                    for (const tx of txByAccount.documents) {
+                        await database.deleteDocument(DATABASE_ID, TRANSACTION_COLLECTION_ID, tx.$id)
+                    }
+                }
+
+                // Delete bank document
+                await database.deleteDocument(
+                    DATABASE_ID,
+                    BANK_COLLECTION_ID,
+                    bank.$id
+                )
+            }
+        }
+
+        // 2) Delete bills
+        if (DATABASE_ID && BILLS_COLLECTION_ID) {
+            const bills = await database.listDocuments(
+                DATABASE_ID,
+                BILLS_COLLECTION_ID,
+                [Query.equal('userId', userId)]
+            )
+            for (const bill of bills.documents) {
+                await database.deleteDocument(DATABASE_ID, BILLS_COLLECTION_ID, bill.$id)
+            }
+        }
+
+        // 3) Delete debts
+        if (DATABASE_ID && DEBTS_COLLECTION_ID) {
+            const debts = await database.listDocuments(
+                DATABASE_ID,
+                DEBTS_COLLECTION_ID,
+                [Query.equal('userId', userId)]
+            )
+            for (const debt of debts.documents) {
+                await database.deleteDocument(DATABASE_ID, DEBTS_COLLECTION_ID, debt.$id)
+            }
+        }
+
+        // 4) Delete investments
+        if (DATABASE_ID && INVESTMENT_COLLECTION_ID) {
+            const investments = await database.listDocuments(
+                DATABASE_ID,
+                INVESTMENT_COLLECTION_ID,
+                [Query.equal('userId', userId)]
+            )
+            for (const investment of investments.documents) {
+                await database.deleteDocument(DATABASE_ID, INVESTMENT_COLLECTION_ID, investment.$id)
+            }
+        }
+
+        // 5) Delete goals and their transactions
+        if (DATABASE_ID && GOAL_COLLECTION_ID) {
+            const goals = await database.listDocuments(
+                DATABASE_ID,
+                GOAL_COLLECTION_ID,
+                [Query.equal('userId', userId)]
+            )
+            for (const goal of goals.documents) {
+                // Delete goal transactions for this goal
+                if (DATABASE_ID && GOAL_TRANSACTION_COLLECTION_ID) {
+                    const goalTransactions = await database.listDocuments(
+                        DATABASE_ID,
+                        GOAL_TRANSACTION_COLLECTION_ID,
+                        [Query.equal('goalId', goal.$id)]
+                    )
+                    for (const goalTx of goalTransactions.documents) {
+                        await database.deleteDocument(DATABASE_ID, GOAL_TRANSACTION_COLLECTION_ID, goalTx.$id)
+                    }
+                }
+                // Delete goal document
+                await database.deleteDocument(DATABASE_ID, GOAL_COLLECTION_ID, goal.$id)
+            }
+        }
+
+        // 6) Delete user document from database
+        if (DATABASE_ID && USER_COLLECTION_ID) {
+            const userDocs = await database.listDocuments(
+                DATABASE_ID,
+                USER_COLLECTION_ID,
+                [Query.equal('userId', userId)]
+            )
+
+            for (const doc of userDocs.documents) {
+                await database.deleteDocument(
+                    DATABASE_ID,
+                    USER_COLLECTION_ID,
+                    doc.$id
+                )
+            }
+        }
+
+        // 7) Delete the Appwrite account
+        await user.delete(userId)
+
+        // 8) Delete session cookie
+        const cookieStore = await cookies()
+        cookieStore.delete("appwrite-session")
+
+        return parseStringify({ success: true })
+    } catch (error) {
+        console.error('Error deleting user account:', error)
         return parseStringify({ error: String(error) })
     }
 }
