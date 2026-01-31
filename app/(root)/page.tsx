@@ -1,4 +1,4 @@
-import AccountBreakdown from '@/components/overview/account-breakdown';
+import AccountBreakdown from '@/components/ui/account-breakdown';
 import HeaderBox from '@/components/ui/header-box';
 import RightSidebar from '@/components/sidebars/right-sidebar';
 import TotalBalanceBox from '@/components/ui/total-balance-box';
