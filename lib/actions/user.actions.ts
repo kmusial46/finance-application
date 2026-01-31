@@ -7,6 +7,7 @@ import { parseStringify } from "../utils"
 import { CountryCode, Products } from "plaid"
 import { plaidClient } from "../plaid"
 import { revalidatePath } from "next/cache"
+import { encrypt } from "../crypto"
 
 const {
     APPWRITE_DATABASE_ID: DATABASE_ID,
@@ -300,14 +301,17 @@ export const createBankAccount = async ({
             return ID.unique()
         })()
 
+        // Encrypt the access token before storing
+        const encryptedAccessToken = encrypt(accessToken)
+
         const payload = {
             userId,
             accountId,
-            accessToken,
+            accessToken: encryptedAccessToken,
             bankId,
         }
 
-        console.log('Creating bank document with payload:', payload)
+        console.log('Creating bank document with payload:', { ...payload, accessToken: '[ENCRYPTED]' })
 
         const bankAccount = await database.createDocument(
             DATABASE_ID!,

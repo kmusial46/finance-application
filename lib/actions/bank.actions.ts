@@ -5,6 +5,7 @@ import { plaidClient } from "../plaid";
 import { parseStringify } from "../utils";
 import { getTransactionsByBankId } from "./transaction.actions";
 import { getBanks, getBank } from "./user.actions";
+import { decrypt } from "../crypto";
 
 const formatTransactionCategory = (rawCategory?: string | null) => {
   if (!rawCategory) return "General";
@@ -27,9 +28,12 @@ export const getAccounts = async ({ userId }: getAccountsProps) => {
     const accountResults = await Promise.allSettled(
       banks?.map(async (bank: Bank) => {
         try {
+          // Decrypt access token before using
+          const decryptedAccessToken = decrypt(bank.accessToken);
+          
           // get each account info from plaid
           const accountsResponse = await plaidClient.accountsGet({
-            access_token: bank.accessToken,
+            access_token: decryptedAccessToken,
           });
           const accountData = accountsResponse.data.accounts[0];
 
@@ -155,18 +159,21 @@ export const getAccount = async ({ appwriteItemId }: getAccountProps) => {
     // Support different field names that might be present in the DB
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const b: any = bank;
-    const accessToken = b.accessToken ?? b.access_token ?? null;
+    const encryptedAccessToken = b.accessToken ?? b.access_token ?? null;
 
     // Log non-sensitive debug info
     try {
-      console.debug('getAccount - bank id:', b.$id, 'hasAccessToken:', !!accessToken, 'bankKeys:', Object.keys(b));
+      console.debug('getAccount - bank id:', b.$id, 'hasAccessToken:', !!encryptedAccessToken, 'bankKeys:', Object.keys(b));
     } catch (e) {
       console.debug('getAccount - bank debug unavailable');
     }
 
-    if (!accessToken) {
+    if (!encryptedAccessToken) {
       return parseStringify({ error: { error_code: 'MISSING_FIELDS', error_message: 'access_token missing on bank document', bank_keys: Object.keys(b) } });
     }
+
+    // Decrypt access token before using
+    const accessToken = decrypt(encryptedAccessToken);
 
     // get account info from plaid
     const accountsResponse = await plaidClient.accountsGet({

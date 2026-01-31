@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getBank } from '@/lib/actions/user.actions'
 import { createUpdateLinkToken } from '@/lib/actions/user.actions'
+import { decrypt } from '@/lib/crypto'
 
 export async function GET(request: NextRequest) {
   try {
@@ -29,15 +30,18 @@ export async function GET(request: NextRequest) {
     console.log('Bank document keys:', Object.keys(bank))
 
     // Create an update mode link token using the access token
-    const accessToken = (bank as any).accessToken ?? (bank as any).access_token
+    const encryptedAccessToken = (bank as any).accessToken ?? (bank as any).access_token
 
-    if (!accessToken) {
+    if (!encryptedAccessToken) {
       console.error('Access token missing. Bank document keys:', Object.keys(bank))
       return NextResponse.json(
         { error: 'Access token not found for this bank account' },
         { status: 400 }
       )
     }
+
+    // Decrypt the access token before using it
+    const accessToken = decrypt(encryptedAccessToken)
 
     const linkTokenResponse = await createUpdateLinkToken(accessToken)
 
