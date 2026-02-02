@@ -4,8 +4,8 @@ import { getBill, getDebt } from '@/lib/actions/bills-debts.actions';
 import { formatAmount } from '@/lib/utils';
 import { Progress } from "@/components/ui/progress";
 import Link from 'next/link';
-import { EditBillDialog } from '@/components/bills-debts/edit-bill-dialog';
-import { EditDebtDialog } from '@/components/bills-debts/edit-debt-dialog';
+import { EditBillDialog } from '@/components/bills/edit-bill-dialog';
+import { EditDebtDialog } from '@/components/debts/edit-debt-dialog';
 
 const BillDebtDetails = async ({ params, searchParams }: SearchParamProps) => {
   const { id } = await params;

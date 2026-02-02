@@ -435,7 +435,7 @@ export const deleteUserAccount = async ({ userId }: { userId: string }) => {
             )
 
             for (const bank of banks.documents) {
-                // Delete transactions referencing this bank (by senderBankId or accountId)
+                // Delete transactions referencing this bank (by senderBankId)
                 if (DATABASE_ID && TRANSACTION_COLLECTION_ID) {
                     const txBySender = await database.listDocuments(
                         DATABASE_ID,
@@ -443,15 +443,6 @@ export const deleteUserAccount = async ({ userId }: { userId: string }) => {
                         [Query.equal('senderBankId', bank.$id)]
                     )
                     for (const tx of txBySender.documents) {
-                        await database.deleteDocument(DATABASE_ID, TRANSACTION_COLLECTION_ID, tx.$id)
-                    }
-
-                    const txByAccount = await database.listDocuments(
-                        DATABASE_ID,
-                        TRANSACTION_COLLECTION_ID,
-                        [Query.equal('accountId', bank.accountId)]
-                    )
-                    for (const tx of txByAccount.documents) {
                         await database.deleteDocument(DATABASE_ID, TRANSACTION_COLLECTION_ID, tx.$id)
                     }
                 }

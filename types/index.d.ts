@@ -466,7 +466,7 @@ declare type Debt = {
   userId: string;
   name: string;
   totalAmountPaid: number; // Amount paid so far
-  initialAmount?: number; // Total debt amount
+  initialAmount: number; // Total debt amount
   interestRate?: number;
   minimumPayment?: number;
   dueDate?: string;

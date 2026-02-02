@@ -1,9 +1,10 @@
 import HeaderBox from '@/components/ui/header-box';
 import { getLoggedInUser } from '@/lib/actions/user.actions';
 import { getDebts } from '@/lib/actions/bills-debts.actions';
-import DebtsList from '@/components/bills-debts/debts-list';
-import DebtSummary from '@/components/bills-debts/debt-summary';
-import { AddDebtDialog } from '@/components/bills-debts/add-debt-dialog';
+import DebtsList from '@/components/debts/debts-list';
+import DebtSummary from '@/components/debts/debt-summary';
+import { AddDebtDialog } from '@/components/debts/add-debt-dialog';
+import DebtAvalancheCalculator from '@/components/debts/debt-avalanche-calculator';
 
 const DebtsPage = async () => {
   const loggedIn = await getLoggedInUser();
@@ -39,8 +40,9 @@ const DebtsPage = async () => {
 
         {/* Desktop: two-column layout */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="md:col-span-2">
+          <div className="md:col-span-2 space-y-6">
             <DebtsList debts={debts} />
+            <DebtAvalancheCalculator debts={debts} />
           </div>
           <aside className="hidden md:block md:col-span-1">
             <DebtSummary debts={debts} />

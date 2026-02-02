@@ -9,7 +9,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog"
-import BillDebtDetails from './bill-debt-details';
+import BillDetails from './bill-details';
 
 const BillsList = ({ bills }: { bills: Bill[] }) => {
     const [sort, setSort] = useState<string>('nextPayment');
@@ -84,7 +84,7 @@ const BillsList = ({ bills }: { bills: Bill[] }) => {
                                                     <DialogHeader className="sr-only">
                                                         <DialogTitle>{bill.name}</DialogTitle>
                                                     </DialogHeader>
-                                                    <BillDebtDetails item={bill} type="bill" />
+                                                    <BillDetails bill={bill} />
                                                 </DialogContent>
                                 </Dialog>
                             </td>

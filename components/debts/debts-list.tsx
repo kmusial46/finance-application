@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { formatAmount, cn } from '@/lib/utils';
 import { Progress } from "@/components/ui/progress"
 import {
@@ -10,7 +10,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog"
-import BillDebtDetails from './bill-debt-details';
+import DebtDetails from './debt-details';
 
 const DebtsList = ({ debts }: { debts: Debt[] }) => {
     const [sort, setSort] = useState<string>('balance-desc');
@@ -57,7 +57,7 @@ const DebtsList = ({ debts }: { debts: Debt[] }) => {
                                 if (balance <= 0) {
                                     estMonths = 0;
                                 } else if (monthlyRate > 0) {
-                                    // If payment doesn't cover monthly interest, can't amortize
+                                    // If payment doesn't cover monthly interest, can't amortise
                                     if (payment <= balance * monthlyRate) {
                                         estMonths = null; // indicate unpayable with current payment
                                     } else {
@@ -123,7 +123,7 @@ const DebtsList = ({ debts }: { debts: Debt[] }) => {
                             <DialogHeader className="sr-only">
                                 <DialogTitle>{debt.name}</DialogTitle>
                             </DialogHeader>
-                            <BillDebtDetails item={debt} type="debt" />
+                            <DebtDetails debt={debt} />
                         </DialogContent>
                     </Dialog>
                 );

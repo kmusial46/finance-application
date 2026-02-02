@@ -35,7 +35,7 @@ import { Loader2 } from "lucide-react"
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
-  currentBalance: z.coerce.number().min(0, "Balance cannot be negative"),
+  currentBalance: z.coerce.number().min(0.01, "Balance must be greater than 0"),
   interestRate: z.coerce.number().optional(),
   minimumPayment: z.coerce.number().optional(),
   dueDate: z.string().optional(),
@@ -124,7 +124,14 @@ export function EditDebtDialog({ debt }: { debt: Debt }) {
                     <FormItem>
                     <FormLabel>Current Balance</FormLabel>
                     <FormControl>
-                        <Input type="number" step="0.01" placeholder="0.00" {...field} value={field.value ?? ''} />
+                        <Input 
+                          type="number" 
+                          step="0.01" 
+                          placeholder="0.00" 
+                          {...field} 
+                          value={field.value ?? ''}
+                          className={form.formState.errors.currentBalance ? "border-red-500" : ""}
+                        />
                     </FormControl>
                     <FormMessage />
                     </FormItem>

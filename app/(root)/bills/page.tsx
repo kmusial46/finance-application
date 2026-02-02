@@ -1,13 +1,13 @@
 import HeaderBox from '@/components/ui/header-box';
 import { getLoggedInUser } from '@/lib/actions/user.actions';
 import { getBills } from '@/lib/actions/bills-debts.actions';
-import BillsList from '@/components/bills-debts/bills-list';
-import BillsMetrics from '@/components/bills-debts/bills-metrics';
-import BillsAlerts from '@/components/bills-debts/bills-alerts';
-import BillsTrendChart from '@/components/bills-debts/bills-trend-chart';
-import { AddBillDialog } from '@/components/bills-debts/add-bill-dialog';
-import { ScanBillsPrompt } from '@/components/bills-debts/scan-bills-prompt';
-import { ScanBillsButton } from '@/components/bills-debts/scan-bills-button';
+import BillsList from '@/components/bills/bills-list';
+import BillsMetrics from '@/components/bills/bills-metrics';
+import BillsAlerts from '@/components/bills/bills-alerts';
+import BillsTrendChart from '@/components/bills/bills-trend-chart';
+import { AddBillDialog } from '@/components/bills/add-bill-dialog';
+import { ScanBillsPrompt } from '@/components/bills/scan-bills-prompt';
+import { ScanBillsButton } from '@/components/bills/scan-bills-button';
 
 const BillsPage = async () => {
   const loggedIn = await getLoggedInUser();

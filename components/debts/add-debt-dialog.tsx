@@ -36,7 +36,7 @@ import { useEffect } from "react"
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
-  currentBalance: z.coerce.number().min(0, "Balance cannot be negative"),
+  currentBalance: z.coerce.number().min(0.01, "Initial amount must be greater than 0"),
   interestRate: z.coerce.number().optional(),
   minimumPayment: z.coerce.number().optional(),
   dueDate: z.string().optional(),
@@ -131,7 +131,14 @@ export function AddDebtDialog({ userId }: { userId: string }) {
                     <FormItem>
                     <FormLabel>Current Balance</FormLabel>
                     <FormControl>
-                        <Input type="number" step="0.01" placeholder="0.00" {...field} value={field.value as number} />
+                        <Input 
+                          type="number" 
+                          step="0.01" 
+                          placeholder="0.00" 
+                          {...field} 
+                          value={field.value as number}
+                          className={form.formState.errors.currentBalance ? "border-red-500" : ""}
+                        />
                     </FormControl>
                     <FormMessage />
                     </FormItem>

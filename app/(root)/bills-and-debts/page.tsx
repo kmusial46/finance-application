@@ -1,16 +1,16 @@
 import HeaderBox from '@/components/ui/header-box';
 import { getLoggedInUser } from '@/lib/actions/user.actions';
 import { getBills, getDebts } from '@/lib/actions/bills-debts.actions';
-import BillsList from '@/components/bills-debts/bills-list';
-import DebtsList from '@/components/bills-debts/debts-list';
-import DebtSummary from '@/components/bills-debts/debt-summary';
-import BillsMetrics from '@/components/bills-debts/bills-metrics';
-import BillsAlerts from '@/components/bills-debts/bills-alerts';
-import BillsTrendChart from '@/components/bills-debts/bills-trend-chart';
-import { AddBillDialog } from '@/components/bills-debts/add-bill-dialog';
-import { AddDebtDialog } from '@/components/bills-debts/add-debt-dialog';
-import { ScanBillsPrompt } from '@/components/bills-debts/scan-bills-prompt';
-import { ScanBillsButton } from '@/components/bills-debts/scan-bills-button';
+import BillsList from '@/components/bills/bills-list';
+import DebtsList from '@/components/debts/debts-list';
+import DebtSummary from '@/components/debts/debt-summary';
+import BillsMetrics from '@/components/bills/bills-metrics';
+import BillsAlerts from '@/components/bills/bills-alerts';
+import BillsTrendChart from '@/components/bills/bills-trend-chart';
+import { AddBillDialog } from '@/components/bills/add-bill-dialog';
+import { AddDebtDialog } from '@/components/debts/add-debt-dialog';
+import { ScanBillsPrompt } from '@/components/bills/scan-bills-prompt';
+import { ScanBillsButton } from '@/components/bills/scan-bills-button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const BillsAndDebts = async () => {

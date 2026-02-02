@@ -3,21 +3,18 @@
 import React, { useState } from 'react'
 import { formatAmount } from '@/lib/utils'
 import { Progress } from "@/components/ui/progress"
-import { EditBillDialog } from './edit-bill-dialog'
 import { EditDebtDialog } from './edit-debt-dialog'
 import { Button } from '../ui/button'
 import { DialogClose } from '../ui/dialog'
-import { deleteBill, deleteDebt, syncDebtWithPlaid } from '@/lib/actions/bills-debts.actions'
+import { deleteDebt, syncDebtWithPlaid } from '@/lib/actions/bills-debts.actions'
 import { Loader2, RefreshCw, Trash2 } from 'lucide-react'
-import { PaymentDialog } from './payment-dialog'
+import { PaymentDialog } from '@/components/bills/payment-dialog'
 
-interface BillDebtDetailsProps {
-  item: Bill | Debt
-  type: 'bill' | 'debt'
+interface DebtDetailsProps {
+  debt: Debt
 }
 
-const BillDebtDetails = ({ item, type }: BillDebtDetailsProps) => {
-  const isBill = type === 'bill'
+const DebtDetails = ({ debt }: DebtDetailsProps) => {
   const [isDeleting, setIsDeleting] = useState(false)
   const [isSyncing, setIsSyncing] = useState(false)
 
@@ -52,17 +49,13 @@ const BillDebtDetails = ({ item, type }: BillDebtDetailsProps) => {
   }
 
   const handleDelete = async () => {
-    const confirmed = window.confirm("Are you sure you want to delete this item?")
+    const confirmed = window.confirm("Are you sure you want to delete this debt?")
     if (!confirmed) return
 
     setIsDeleting(true)
     try {
-      if (isBill) {
-        await deleteBill(item.$id)
-      } else {
-        await deleteDebt(item.$id)
-      }
-      // Close dialog by finding the close button (hacky but works for uncontrolled dialogs)
+      await deleteDebt(debt.$id)
+      // Close dialog by finding the close button
       document.getElementById('close-dialog-btn')?.click()
     } catch (error) {
       console.error(error)
@@ -72,11 +65,11 @@ const BillDebtDetails = ({ item, type }: BillDebtDetailsProps) => {
   }
 
   const handleSync = async () => {
-    if (isBill || !item.linkedAccountId) return
+    if (!debt.linkedAccountId) return
     
     setIsSyncing(true)
     try {
-      await syncDebtWithPlaid(item.$id, item.linkedAccountId)
+      await syncDebtWithPlaid(debt.$id, debt.linkedAccountId)
     } catch (error) {
       console.error(error)
     } finally {
@@ -88,18 +81,16 @@ const BillDebtDetails = ({ item, type }: BillDebtDetailsProps) => {
     <div className="space-y-6">
       <div className="flex justify-between items-center border-b pb-4">
         <div>
-          <h2 className="text-xl font-bold text-gray-900">{item.name}</h2>
+          <h2 className="text-xl font-bold text-gray-900">{debt.name}</h2>
           <p className="text-sm text-gray-500 capitalize">
-            {isBill ? (item as Bill).category : (item as Debt).type.replace('_', ' ')}
+            {debt.type.replace('_', ' ')}
           </p>
         </div>
         <div className="text-right">
           <p className="text-2xl font-bold text-blue-600">
-            {formatAmount(isBill ? (item as Bill).amount : Math.max(0, (item as Debt).initialAmount - (item as Debt).totalAmountPaid))}
+            {formatAmount(Math.max(0, debt.initialAmount - debt.totalAmountPaid))}
           </p>
-          <p className="text-xs text-gray-500">
-            {isBill ? 'Amount Due' : 'Remaining Balance'}
-          </p>
+          <p className="text-xs text-gray-500">Remaining Balance</p>
         </div>
       </div>
 
@@ -111,44 +102,33 @@ const BillDebtDetails = ({ item, type }: BillDebtDetailsProps) => {
             <div>
               <p className="text-gray-500">Due Date</p>
               <p className="font-medium">
-                {item.dueDate ? new Date(item.dueDate).toLocaleDateString() : 'N/A'}
+                {debt.dueDate ? new Date(debt.dueDate).toLocaleDateString() : 'N/A'}
               </p>
             </div>
-            {isBill && (
-              <div>
-                <p className="text-gray-500">Frequency</p>
-                <p className="font-medium capitalize">{(item as Bill).frequency}</p>
-              </div>
-            )}
-            {!isBill && (
-              <>
-                <div>
-                  <p className="text-gray-500">Interest Rate</p>
-                  <p className="font-medium">{(item as Debt).interestRate}%</p>
-                </div>
-                <div>
-                  <p className="text-gray-500">Min Payment</p>
-                  <p className="font-medium">{formatAmount((item as Debt).minimumPayment || 0)}</p>
-                </div>
-              </>
-            )}
+            <div>
+              <p className="text-gray-500">Interest Rate</p>
+              <p className="font-medium">{debt.interestRate}%</p>
+            </div>
+            <div>
+              <p className="text-gray-500">Min Payment</p>
+              <p className="font-medium">{formatAmount(debt.minimumPayment || 0)}</p>
+            </div>
           </div>
 
-          {!isBill && (item as Debt).initialAmount && (
+          {debt.initialAmount && (
             <div className="space-y-2">
               <div className="flex justify-between text-xs">
                 <span>Payoff Progress</span>
                 <span>
-                  {Math.round(((item as Debt).totalAmountPaid / (item as Debt).initialAmount!) * 100)}%
+                  {Math.round((debt.totalAmountPaid / debt.initialAmount) * 100)}%
                 </span>
               </div>
-              <Progress value={((item as Debt).totalAmountPaid / (item as Debt).initialAmount!) * 100} />
+              <Progress value={(debt.totalAmountPaid / debt.initialAmount) * 100} />
             </div>
           )}
 
           {/* Payoff estimate */}
-          {!isBill && (() => {
-            const debt = item as Debt;
+          {(() => {
             const { payment, estMonths, estPayoffDate } = getPayoffEstimate(debt);
             return (
               <div className="pt-3 text-sm text-gray-700">
@@ -166,7 +146,7 @@ const BillDebtDetails = ({ item, type }: BillDebtDetailsProps) => {
         <div className="space-y-4">
           <div className="flex justify-between items-center">
             <h3 className="text-md font-semibold">Linked Account</h3>
-            {!isBill && item.linkedAccountId && item.linkedAccountId !== 'none' && (
+            {debt.linkedAccountId && debt.linkedAccountId !== 'none' && (
                 <Button 
                     variant="ghost" 
                     size="sm" 
@@ -179,10 +159,10 @@ const BillDebtDetails = ({ item, type }: BillDebtDetailsProps) => {
                 </Button>
             )}
           </div>
-          {item.linkedAccountId && item.linkedAccountId !== 'none' ? (
+          {debt.linkedAccountId && debt.linkedAccountId !== 'none' ? (
             <div className="p-3 border rounded-lg bg-gray-50 text-sm">
               <p className="font-medium">Linked to Plaid Account</p>
-              <p className="text-xs text-gray-500">ID: {item.linkedAccountId}</p>
+              <p className="text-xs text-gray-500">ID: {debt.linkedAccountId}</p>
             </div>
           ) : (
             <div className="p-3 border rounded-lg bg-gray-50 border-dashed text-sm">
@@ -207,18 +187,12 @@ const BillDebtDetails = ({ item, type }: BillDebtDetailsProps) => {
             <DialogClose asChild>
               <Button variant="outline" id="close-dialog-btn">Close</Button>
             </DialogClose>
-            {isBill ? (
-                <EditBillDialog bill={item as Bill} />
-            ) : (
-                <>
-                  <EditDebtDialog debt={item as Debt} />
-                  <PaymentDialog type="debt" data={item} />
-                </>
-            )}
+            <EditDebtDialog debt={debt} />
+            <PaymentDialog type="debt" data={debt} />
         </div>
       </div>
     </div>
   )
 }
 
-export default BillDebtDetails
+export default DebtDetails

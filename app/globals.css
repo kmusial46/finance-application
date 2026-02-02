@@ -394,13 +394,33 @@
   }
 
   .sidebar-label {
-    @apply text-16 font-semibold text-black-2 max-xl:hidden;
+    @apply text-[15px] font-semibold text-black-2 max-xl:hidden;
   }
 
   .custom-chart.tradingview-widget-container iframe {
   border: 1px solid #30333A;
   border-radius: 8px !important;
   overflow: hidden !important;
+  }
+
+  /* Arrow click animation: slide right and fade out */
+  @keyframes arrow-move {
+    0% {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    70% {
+      transform: translateX(0.75rem);
+      opacity: 1;
+    }
+    100% {
+      transform: translateX(1.5rem);
+      opacity: 0;
+    }
+  }
+
+  .arrow-animate {
+    animation: arrow-move 500ms forwards;
   }
 
   .search-dialog {

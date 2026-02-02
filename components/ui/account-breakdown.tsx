@@ -65,21 +65,32 @@ const AccountBreakdown = ({ transactions = [] }: AccountBreakdownProps) => {
             (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
         );
 
-        let runningBalance = 0;
-        const balanceData: { date: string; balance: number }[] = [];
+        // Calculate current total balance (sum of all transactions)
+        const currentTotalBalance = sortedTransactions.reduce(
+            (sum, transaction) => sum + transaction.amount, 
+            0
+        );
 
-        sortedTransactions.forEach((transaction) => {
-            runningBalance += transaction.amount;
+        // Work backwards: calculate balance at each point by subtracting future transactions
+        const balanceData: { date: string; balance: number }[] = [];
+        let balanceAtPoint = currentTotalBalance;
+
+        // Iterate from most recent to oldest to calculate historical balances
+        for (let i = sortedTransactions.length - 1; i >= 0; i--) {
+            const transaction = sortedTransactions[i];
             const formattedDate = new Date(transaction.date).toLocaleDateString('en-GB', {
                 month: 'short',
                 day: 'numeric',
             });
 
-            balanceData.push({
+            balanceData.unshift({
                 date: formattedDate,
-                balance: runningBalance,
+                balance: balanceAtPoint,
             });
-        });
+
+            // Subtract this transaction to get the previous balance
+            balanceAtPoint -= transaction.amount;
+        }
 
         // Sample data points if too many transactions
         if (balanceData.length > 30) {
