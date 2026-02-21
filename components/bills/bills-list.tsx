@@ -1,7 +1,11 @@
 "use client"
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { formatAmount, cn } from '@/lib/utils';
+import { markBillAsPaid } from '@/lib/actions/bills-debts.actions';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+import { Check } from 'lucide-react';
 import {
     Dialog,
     DialogContent,
@@ -13,9 +17,15 @@ import BillDetails from './bill-details';
 
 const BillsList = ({ bills }: { bills: Bill[] }) => {
     const [sort, setSort] = useState<string>('nextPayment');
+    const [markingPaidId, setMarkingPaidId] = useState<string | null>(null);
+    const router = useRouter();
 
     const [currentPage, setCurrentPage] = useState<number>(1);
     const pageSize = 20;
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [bills?.length]);
 
     const sortedBills = useMemo(() => {
         if (!bills) return [] as Bill[];
@@ -32,6 +42,79 @@ const BillsList = ({ bills }: { bills: Bill[] }) => {
                 return copy.sort((a, b) => new Date(a.nextPaymentDate).getTime() - new Date(b.nextPaymentDate).getTime());
         }
     }, [bills, sort]);
+
+    const handleMarkPaid = async (bill: Bill) => {
+        if (!bill?.$id) return;
+
+        const scrollY = typeof window !== 'undefined' ? window.scrollY : 0;
+
+        setMarkingPaidId(bill.$id);
+        try {
+            await markBillAsPaid(bill.$id, bill.nextPaymentDate, bill.frequency);
+            toast.success(`Marked ${bill.name} as paid.`);
+
+            // Avoid scroll jumps when the list re-sorts after refresh.
+            try {
+                (document.activeElement as HTMLElement | null)?.blur?.();
+            } catch {
+                // noop
+            }
+
+            router.refresh();
+
+            // Restore the user's scroll position after the refresh commits.
+            if (typeof window !== 'undefined') {
+                requestAnimationFrame(() => {
+                    window.scrollTo({ top: scrollY, behavior: 'auto' });
+                });
+            }
+        } catch (error) {
+            console.error(error);
+            toast.error('Failed to mark bill as paid.');
+        } finally {
+            setMarkingPaidId(null);
+        }
+    };
+
+    const renderPaidCheckbox = (bill: Bill) => {
+        const now = new Date();
+        const endOfCurrentMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+        const isPaidThisMonth = new Date(bill.nextPaymentDate) > endOfCurrentMonth;
+        const isMarking = markingPaidId === bill.$id;
+
+        return (
+            <div className="flex items-center justify-center">
+                <label
+                    className={cn(
+                        'inline-flex h-8 w-8 items-center justify-center rounded-md',
+                        !(isPaidThisMonth || isMarking) && 'hover:bg-gray-50',
+                        (isPaidThisMonth || isMarking) && 'opacity-60'
+                    )}
+                >
+                    <input
+                        type="checkbox"
+                        aria-label={`Mark ${bill.name} as paid`}
+                        checked={isPaidThisMonth}
+                        disabled={isPaidThisMonth || isMarking}
+                        onChange={() => handleMarkPaid(bill)}
+                        className="sr-only peer"
+                    />
+
+                    <span
+                        aria-hidden="true"
+                        className={cn(
+                            'inline-flex h-4 w-4 items-center justify-center rounded-md border border-gray-400 bg-white transition-colors',
+                            'peer-focus-visible:outline-none peer-focus-visible:ring-2 peer-focus-visible:ring-blue-600 peer-focus-visible:ring-offset-2',
+                            'peer-checked:border-blue-600 peer-checked:bg-blue-600',
+                            'peer-disabled:cursor-not-allowed'
+                        )}
+                    >
+                        <Check className="h-3 w-3 text-white opacity-0 transition-opacity peer-checked:opacity-100" />
+                    </span>
+                </label>
+            </div>
+        );
+    };
 
     return (
         <div className="flex flex-col gap-4">
@@ -50,8 +133,10 @@ const BillsList = ({ bills }: { bills: Bill[] }) => {
                     <tr>
                         <th className="px-6 py-3">Name</th>
                         <th className="px-6 py-3">Amount</th>
-                        <th className="px-6 py-3">Frequency</th>
+                        <th className="px-6 py-3 hidden md:table-cell">Frequency</th>
+                        <th className="px-6 py-3 text-center md:hidden">Paid</th>
                         <th className="px-6 py-3">Next Payment</th>
+                        <th className="px-6 py-3 hidden md:table-cell">Paid</th>
                         <th className="px-6 py-3">Status</th>
                         <th className="px-6 py-3 text-right">Actions</th>
                     </tr>
@@ -65,8 +150,14 @@ const BillsList = ({ bills }: { bills: Bill[] }) => {
                         <tr key={bill.$id} className="hover:bg-gray-50">
                             <td className="px-6 py-4 font-medium text-gray-900">{bill.name}</td>
                             <td className="px-6 py-4">{formatAmount(bill.amount)}</td>
-                            <td className="px-6 py-4 capitalize">{bill.frequency}</td>
+                            <td className="px-6 py-4 hidden md:table-cell capitalize">{bill.frequency}</td>
+                            <td className="px-6 py-4 md:hidden">
+                                {renderPaidCheckbox(bill)}
+                            </td>
                             <td className="px-6 py-4">{new Date(bill.nextPaymentDate).toLocaleDateString()}</td>
+                            <td className="px-6 py-4 hidden md:table-cell">
+                                {renderPaidCheckbox(bill)}
+                            </td>
                             <td className="px-6 py-4">
                                 <span className={cn("px-2.5 py-0.5 rounded-full text-xs font-medium", 
                                     bill.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800')}>

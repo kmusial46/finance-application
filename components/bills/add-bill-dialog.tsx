@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -32,7 +33,7 @@ import {
 } from "@/components/ui/select"
 import { createBill, getUserAccounts } from "@/lib/actions/bills-debts.actions"
 import { Loader2 } from "lucide-react"
-import { useEffect } from "react"
+import { toast } from "sonner"
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -44,6 +45,7 @@ const formSchema = z.object({
 })
 
 export function AddBillDialog({ userId }: { userId: string }) {
+  const router = useRouter()
   const [open, setOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [accounts, setAccounts] = useState<any[]>([])
@@ -73,7 +75,7 @@ export function AddBillDialog({ userId }: { userId: string }) {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true)
     try {
-      await createBill({
+      const created = await createBill({
         userId,
         name: values.name,
         amount: values.amount,
@@ -87,8 +89,20 @@ export function AddBillDialog({ userId }: { userId: string }) {
       })
       setOpen(false)
       form.reset()
+
+      // Ensure the bills list updates immediately after creating a bill.
+      router.refresh()
+
+      const createdId = created?.$id ? ` (#${created.$id})` : ""
+      toast.success(`Bill added.${createdId}`)
     } catch (error) {
       console.error(error)
+
+      const message =
+        error instanceof Error && error.message
+          ? error.message
+          : "Failed to add bill."
+      toast.error(message)
     } finally {
       setIsLoading(false)
     }
@@ -145,7 +159,7 @@ export function AddBillDialog({ userId }: { userId: string }) {
                     <FormLabel>Category</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
-                        <SelectTrigger>
+                    <SelectTrigger className="w-full">
                             <SelectValue placeholder="Select category" />
                         </SelectTrigger>
                         </FormControl>
@@ -165,15 +179,15 @@ export function AddBillDialog({ userId }: { userId: string }) {
                 />
             </div>
             
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <FormField
                 control={form.control}
                 name="dueDate"
                 render={({ field }) => (
-                    <FormItem>
+                <FormItem className="min-w-0">
                     <FormLabel>Next Due Date</FormLabel>
                     <FormControl>
-                        <Input type="date" {...field} />
+                <Input type="date" className="w-full max-w-full appearance-none" {...field} />
                     </FormControl>
                     <FormMessage />
                     </FormItem>
@@ -183,11 +197,11 @@ export function AddBillDialog({ userId }: { userId: string }) {
                 control={form.control}
                 name="frequency"
                 render={({ field }) => (
-                    <FormItem>
+                <FormItem className="min-w-0">
                     <FormLabel>Frequency</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
-                        <SelectTrigger>
+                  <SelectTrigger className="w-full">
                             <SelectValue placeholder="Select frequency" />
                         </SelectTrigger>
                         </FormControl>
@@ -212,7 +226,7 @@ export function AddBillDialog({ userId }: { userId: string }) {
                   <FormLabel>Link to Bank Account (Optional)</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select an account" />
                       </SelectTrigger>
                     </FormControl>

@@ -6,6 +6,7 @@ import { parseStringify } from "../utils";
 import { revalidatePath } from "next/cache";
 import { getAccounts } from "./bank.actions";
 import { plaidClient } from "../plaid";
+import { decrypt } from "../crypto";
 
 const DATABASE_ID = process.env.APPWRITE_DATABASE_ID!;
 const BILLS_COLLECTION_ID = process.env.APPWRITE_BILLS_COLLECTION_ID!;
@@ -18,7 +19,11 @@ export const getBills = async ({ userId }: { userId: string }) => {
     const bills = await database.listDocuments(
       DATABASE_ID,
       BILLS_COLLECTION_ID,
-      [Query.equal('userId', userId)]
+      [
+        Query.equal('userId', userId),
+        Query.orderDesc('$createdAt'),
+        Query.limit(200),
+      ]
     );
     return parseStringify(bills.documents);
   } catch (error) {
@@ -33,7 +38,11 @@ export const getDebts = async ({ userId }: { userId: string }) => {
     const debts = await database.listDocuments(
       DATABASE_ID,
       DEBTS_COLLECTION_ID,
-      [Query.equal('userId', userId)]
+      [
+        Query.equal('userId', userId),
+        Query.orderDesc('$createdAt'),
+        Query.limit(200),
+      ]
     );
     return parseStringify(debts.documents);
   } catch (error) {
@@ -110,20 +119,65 @@ export const scanRecurringBills = async ({ userId }: { userId: string }) => {
 
     if (!banks.documents.length) {
       console.log("No banks found for user");
-      return { newBills: 0, updatedBills: 0 };
+      return {
+        newBills: 0,
+        updatedBills: 0,
+        banksScanned: 0,
+        banksFailed: 0,
+        banksNeedingReauth: 0,
+        streamsFound: 0,
+        bankFailures: [],
+      };
     }
 
     let newBillsCount = 0;
     let updatedBillsCount = 0;
+    let banksScanned = 0;
+    let banksFailed = 0;
+    let banksNeedingReauth = 0;
+    let streamsFound = 0;
+
+    const bankFailures: Array<{
+      bankDocumentId: string;
+      plaidItemId?: string;
+      errorCode?: string;
+      errorType?: string;
+      errorMessage?: string;
+    }> = [];
 
     // 2. Iterate through each bank and fetch recurring transactions
     for (const bank of banks.documents) {
       try {
+        banksScanned++;
+
+        // Support different field names that might be present in the DB
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const bankDoc: any = bank;
+        const encryptedAccessToken = bankDoc?.accessToken ?? bankDoc?.access_token;
+        if (!encryptedAccessToken) {
+          banksFailed++;
+          console.warn(`Bank ${bankDoc?.$id ?? 'unknown'} missing access token; skipping recurring scan`);
+
+          bankFailures.push({
+            bankDocumentId: String(bankDoc?.$id ?? 'unknown'),
+            plaidItemId: bankDoc?.bankId,
+            errorCode: 'MISSING_ACCESS_TOKEN',
+            errorType: 'MISSING_FIELDS',
+            errorMessage: 'access_token missing on bank document',
+          });
+
+          continue;
+        }
+
+        // Decrypt before calling Plaid
+        const accessToken = decrypt(encryptedAccessToken);
+
         const response = await plaidClient.transactionsRecurringGet({
-          access_token: bank.accessToken
+          access_token: accessToken
         });
 
-        const { outflow_streams } = response.data;
+        const outflow_streams = response.data?.outflow_streams ?? [];
+        streamsFound += outflow_streams.length;
 
         // 3. Process each stream
         for (const stream of outflow_streams) {
@@ -134,7 +188,10 @@ export const scanRecurringBills = async ({ userId }: { userId: string }) => {
           const existingBills = await database.listDocuments(
             DATABASE_ID,
             BILLS_COLLECTION_ID,
-            [Query.equal('plaidStreamId', stream.stream_id)]
+            [
+              Query.equal('userId', userId),
+              Query.equal('plaidStreamId', stream.stream_id),
+            ]
           );
 
           const frequency = mapPlaidFrequency(stream.frequency);
@@ -143,7 +200,7 @@ export const scanRecurringBills = async ({ userId }: { userId: string }) => {
           const billData = {
             userId,
             name: stream.description,
-            amount: Math.abs(stream.last_amount.amount || 0), // Ensure positive amount
+            amount: Math.abs(Number(stream.last_amount?.amount ?? 0)), // Ensure positive amount
             dueDate: stream.last_date, // Keep track of the last known date
             frequency: frequency,
             category: (stream.category && stream.category[0]) || 'subscription',
@@ -151,6 +208,7 @@ export const scanRecurringBills = async ({ userId }: { userId: string }) => {
             plaidStreamId: stream.stream_id,
             linkedAccountId: stream.account_id, // Auto-link the account
             status: 'active',
+            isPaid: false,
             nextPaymentDate: nextPaymentDate,
           };
 
@@ -175,12 +233,45 @@ export const scanRecurringBills = async ({ userId }: { userId: string }) => {
           }
         }
       } catch (plaidError) {
-        console.error(`Failed to sync bank ${bank.$id}:`, plaidError);
+        banksFailed++;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const e: any = plaidError;
+        const plaidPayload = e?.response?.data;
+        const errorCode: string = String(plaidPayload?.error_code ?? e?.code ?? 'UNKNOWN_ERROR');
+        const errorType: string | undefined = plaidPayload?.error_type;
+        const errorMessage: string | undefined = plaidPayload?.error_message ?? e?.message;
+
+        if (errorCode === 'ITEM_LOGIN_REQUIRED') {
+          banksNeedingReauth++;
+        }
+
+        bankFailures.push({
+          bankDocumentId: bank.$id,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          plaidItemId: (bank as any)?.bankId,
+          errorCode,
+          errorType,
+          errorMessage,
+        });
+
+        console.error(
+          `Failed to scan recurring streams for bank ${bank.$id}:`,
+          plaidPayload ?? e
+        );
       }
     }
 
+    revalidatePath('/bills');
     revalidatePath('/bills-and-debts');
-    return { newBills: newBillsCount, updatedBills: updatedBillsCount };
+    return {
+      newBills: newBillsCount,
+      updatedBills: updatedBillsCount,
+      banksScanned,
+      banksFailed,
+      banksNeedingReauth,
+      streamsFound,
+      bankFailures,
+    };
 
   } catch (error) {
     console.error("Error scanning recurring bills:", error);
@@ -192,29 +283,38 @@ export const createBill = async (bill: CreateBillParams) => {
   try {
     const { database } = await createAdminClient();
 
+    const payload: Record<string, unknown> = {
+      userId: bill.userId,
+      name: bill.name,
+      amount: bill.amount,
+      dueDate: bill.dueDate,
+      frequency: bill.frequency,
+      category: bill.category,
+      isAutoDetected: bill.isAutoDetected || false,
+      status: bill.status || 'active',
+      isPaid: false,
+      nextPaymentDate: bill.nextPaymentDate,
+    };
+
+    // Appwrite optional string attributes typically should be omitted when empty
+    // rather than being set to null.
+    if (bill.linkedAccountId) {
+      payload.linkedAccountId = bill.linkedAccountId;
+    }
+
     const newBill = await database.createDocument(
       DATABASE_ID,
       BILLS_COLLECTION_ID,
       ID.unique(),
-      {
-        userId: bill.userId,
-        name: bill.name,
-        amount: bill.amount,
-        dueDate: bill.dueDate,
-        frequency: bill.frequency,
-        category: bill.category,
-        isAutoDetected: bill.isAutoDetected || false,
-        linkedAccountId: bill.linkedAccountId || null,
-        status: bill.status || 'active',
-        isPaid: false,
-        nextPaymentDate: bill.nextPaymentDate,
-      }
+      payload
     );
     
+    revalidatePath('/bills');
     revalidatePath('/bills-and-debts');
     return parseStringify(newBill);
   } catch (error) {
     console.error("Error creating bill:", error);
+    throw error;
   }
 }
 
@@ -256,6 +356,7 @@ export const updateBill = async (billId: string, data: Partial<CreateBillParams>
       billId,
       data
     );
+    revalidatePath('/bills');
     revalidatePath('/bills-and-debts');
     revalidatePath(`/bills-and-debts/${billId}`);
     return parseStringify(updatedBill);
@@ -285,6 +386,7 @@ export const deleteBill = async (billId: string) => {
     try {
         const { database } = await createAdminClient();
         await database.deleteDocument(DATABASE_ID, BILLS_COLLECTION_ID, billId);
+    revalidatePath('/bills');
         revalidatePath('/bills-and-debts');
     } catch (error) {
         console.error("Error deleting bill:", error);
@@ -362,6 +464,7 @@ export const markBillAsPaid = async (billId: string, currentNextPaymentDate: str
       }
     );
 
+    revalidatePath('/bills');
     revalidatePath('/bills-and-debts');
     revalidatePath(`/bills-and-debts/${billId}`);
     return parseStringify(updatedBill);

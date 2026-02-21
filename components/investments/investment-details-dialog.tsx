@@ -77,11 +77,13 @@ const InvestmentDetailsDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-white !w-[95vw] sm:!w-[90vw] md:!w-[85vw] lg:!w-[1200px] !max-w-[1200px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="bg-white !w-[calc(100vw-2rem)] sm:!w-[90vw] md:!w-[85vw] lg:!w-[1200px] !max-w-[1200px] !p-4 sm:!p-6 max-h-[90vh] overflow-y-auto overflow-x-hidden">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-gray-900">
-            {holding.symbol} - {holding.name}
-            <span className="text-sm font-normal text-gray-500">
+          <DialogTitle className="flex flex-col items-start gap-1 text-gray-900 sm:flex-row sm:items-center sm:gap-2">
+            <span className="text-base font-semibold sm:text-lg">
+              {holding.symbol} - {holding.name}
+            </span>
+            <span className="text-xs font-normal text-gray-500 sm:text-sm">
               {profile?.exchange}
             </span>
           </DialogTitle>
@@ -90,26 +92,26 @@ const InvestmentDetailsDialog = ({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-6 py-4">
+        <div className="grid gap-4 py-2 sm:gap-6 sm:py-4">
           {/* Summary Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-500">Total Value</p>
-              <p className="text-lg font-semibold">{formatAmount(holding.marketValue)}</p>
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4 sm:gap-4">
+            <div className="rounded-lg bg-gray-50 p-3 sm:p-4">
+              <p className="text-xs text-gray-500 sm:text-sm">Total Value</p>
+              <p className="text-base font-semibold sm:text-lg">{formatAmount(holding.marketValue)}</p>
             </div>
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-500">Total Return</p>
-              <p className={`text-lg font-semibold ${holding.totalReturn >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            <div className="rounded-lg bg-gray-50 p-3 sm:p-4">
+              <p className="text-xs text-gray-500 sm:text-sm">Total Return</p>
+              <p className={`text-base font-semibold sm:text-lg ${holding.totalReturn >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                 {formatAmount(holding.totalReturn)} ({holding.totalReturnPercent.toFixed(2)}%)
               </p>
             </div>
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-500">Avg Cost</p>
-              <p className="text-lg font-semibold">{formatAmount(holding.avgCost)}</p>
+            <div className="rounded-lg bg-gray-50 p-3 sm:p-4">
+              <p className="text-xs text-gray-500 sm:text-sm">Avg Cost</p>
+              <p className="text-base font-semibold sm:text-lg">{formatAmount(holding.avgCost)}</p>
             </div>
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-500">Shares</p>
-              <p className="text-lg font-semibold">{holding.totalShares}</p>
+            <div className="rounded-lg bg-gray-50 p-3 sm:p-4">
+              <p className="text-xs text-gray-500 sm:text-sm">Shares</p>
+              <p className="text-base font-semibold sm:text-lg">{holding.totalShares}</p>
             </div>
           </div>
 
@@ -141,7 +143,7 @@ const InvestmentDetailsDialog = ({
               scriptUrl="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js"
               config={{
                 width: "100%",
-                height: 700,
+                height: 520,
                 symbol: holding.symbol,
                 interval: "D",
                 timezone: "Etc/UTC",
@@ -153,15 +155,15 @@ const InvestmentDetailsDialog = ({
                 allow_symbol_change: true,
                 support_host: "https://www.tradingview.com"
               }}
-              height={700}
+              height={520}
             />
           </div>
 
           {/* Purchase Lots */}
           <div>
-            <h3 className="font-semibold mb-2">Purchase History</h3>
-            <div className="border rounded-md">
-              <table className="w-full text-sm">
+            <h3 className="mb-2 text-sm font-semibold sm:text-base">Purchase History</h3>
+            <div className="max-w-full overflow-x-auto rounded-md border">
+              <table className="min-w-[640px] w-full text-xs sm:text-sm">
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="p-2 text-left">Date</th>

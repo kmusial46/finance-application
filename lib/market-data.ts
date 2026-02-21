@@ -8,9 +8,9 @@ const FINNHUB_METRIC_ENDPOINT = `${FINNHUB_BASE_URL}/stock/metric`;
 const API_ERROR = "Unable to reach market data provider.";
 
 const getApiKey = () => {
-  const key = process.env.NEXT_PUBLIC_MARKET_DATA_API_KEY;
+  const key = process.env.NEXT_PUBLIC_FINNHUB_API_KEY;
   if (!key) {
-    throw new Error("Missing NEXT_PUBLIC_MARKET_DATA_API_KEY environment variable.");
+    throw new Error("Missing NEXT_PUBLIC_FINNHUB_API_KEY environment variable.");
   }
   return key;
 };

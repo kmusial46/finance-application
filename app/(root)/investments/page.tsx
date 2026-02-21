@@ -81,8 +81,10 @@ const InvestmentsPage = async () => {
     const end = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999);
     
     // Calculate portfolio value at that point in time
-    const investmentsAtDate = investments.filter((inv: Investment) => new Date(inv.$createdAt) <= end);
-    const symbolsAtDate = Array.from(new Set(investmentsAtDate.map((inv) => inv.symbol)));
+    const investmentsAtDate = investments.filter((inv: Investment) => {
+      const effectiveDate = inv.purchaseDate ? new Date(inv.purchaseDate) : new Date(inv.$createdAt);
+      return effectiveDate <= end;
+    });
     
     // Aggregate for that month
     const holdingsAtDate: Record<string, { shares: number; cost: number }> = {};
@@ -111,12 +113,14 @@ const InvestmentsPage = async () => {
 
   return (
     <section className="flex flex-col gap-8 bg-gray-25 p-8 xl:py-12">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <HeaderBox
           title="Investments"
           subtext="Monitor your holdings, allocations, and total portfolio value."
         />
-        <AddInvestmentDialog userId={user.$id} />
+        <div className="self-start md:self-auto">
+          <AddInvestmentDialog userId={user.$id} />
+        </div>
       </div>
 
       <PortfolioSummary

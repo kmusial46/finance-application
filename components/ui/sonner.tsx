@@ -1,5 +1,6 @@
 "use client"
 
+import type { CSSProperties } from "react"
 import {
   CircleCheckIcon,
   InfoIcon,
@@ -16,6 +17,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
   return (
     <Sonner
       theme={theme as ToasterProps["theme"]}
+      richColors={false}
       className="toaster group"
       icons={{
         success: <CircleCheckIcon className="size-4" />,
@@ -26,11 +28,29 @@ const Toaster = ({ ...props }: ToasterProps) => {
       }}
       style={
         {
-          "--normal-bg": "var(--popover)",
-          "--normal-text": "var(--popover-foreground)",
-          "--normal-border": "var(--border)",
-          "--border-radius": "var(--radius)",
-        } as React.CSSProperties
+          // Sonner renders toast backgrounds using these CSS variables.
+          // This project does not define shadcn theme vars like `--popover`,
+          // so we set explicit opaque values to prevent transparent toasts.
+          "--normal-bg": "white",
+          "--normal-text": "rgb(16 24 40)",
+          "--normal-border": "rgb(234 236 240)",
+
+          // Keep all variants consistent and opaque.
+          "--success-bg": "white",
+          "--success-text": "rgb(16 24 40)",
+          "--success-border": "rgb(234 236 240)",
+          "--info-bg": "white",
+          "--info-text": "rgb(16 24 40)",
+          "--info-border": "rgb(234 236 240)",
+          "--warning-bg": "white",
+          "--warning-text": "rgb(16 24 40)",
+          "--warning-border": "rgb(234 236 240)",
+          "--error-bg": "white",
+          "--error-text": "rgb(16 24 40)",
+          "--error-border": "rgb(234 236 240)",
+
+          "--border-radius": "var(--radius, 0.75rem)",
+        } as CSSProperties
       }
       {...props}
     />

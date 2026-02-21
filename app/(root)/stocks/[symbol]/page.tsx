@@ -12,9 +12,9 @@ export default async function StockDetails({ params }: StockDetailsPageProps) {
   const scriptUrl = `https://s3.tradingview.com/external-embedding/embed-widget-`;
 
   return (
-    <div className="flex min-h-screen home-wrapper ml-5 mt-5">
-      <section className="grid w-full gap-8 home-section mr-5">
-        <div className="md:col-span-1 xl:col-span-1 flex flex-col gap-6">
+    <div className="flex min-h-screen home-wrapper px-5 pt-5 overflow-x-hidden">
+      <section className="grid w-full min-w-0 gap-8 home-section">
+        <div className="md:col-span-1 xl:col-span-1 flex min-w-0 flex-col gap-6">
           <TradingViewWidget
             scriptUrl={`${scriptUrl}symbol-info.js`}
             config={SYMBOL_INFO_WIDGET_CONFIG(symbol)}
@@ -36,7 +36,7 @@ export default async function StockDetails({ params }: StockDetailsPageProps) {
           />
         </div>
 
-        <div className="md:col-span-1 xl:col-span-1">
+        <div className="md:col-span-1 xl:col-span-1 min-w-0">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="h-full">
               <TradingViewWidget

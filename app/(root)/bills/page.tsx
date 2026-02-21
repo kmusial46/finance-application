@@ -9,6 +9,8 @@ import { AddBillDialog } from '@/components/bills/add-bill-dialog';
 import { ScanBillsPrompt } from '@/components/bills/scan-bills-prompt';
 import { ScanBillsButton } from '@/components/bills/scan-bills-button';
 
+export const dynamic = 'force-dynamic';
+
 const BillsPage = async () => {
   const loggedIn = await getLoggedInUser();
   if (!loggedIn) return null;

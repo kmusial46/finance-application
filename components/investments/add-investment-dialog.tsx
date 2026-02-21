@@ -123,7 +123,7 @@ const debouncedFetchStocks = useDebounce(async () => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transition-all duration-200 font-semibold px-6 py-2 flex items-center gap-2">
+        <Button className="form-btn px-6 py-2 flex items-center gap-2">
           <Plus className="h-5 w-5" />
           Add Investment
         </Button>
@@ -233,14 +233,14 @@ const debouncedFetchStocks = useDebounce(async () => {
                 <FormItem>
                   <FormLabel>Date Acquired</FormLabel>
                   <FormControl>
-                    <Input type="date" {...field} />
+                    <Input type="date" {...field} className="min-w-0 max-w-full appearance-none" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
             {error && <p className="text-sm text-red-500">{error}</p>}
-            <Button type="submit" className="w-full" disabled={isPending}>
+            <Button type="submit" className="w-full form-btn" disabled={isPending}>
               {isPending ? 'Adding...' : 'Add Investment'}
             </Button>
           </form>

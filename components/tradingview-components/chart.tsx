@@ -16,9 +16,9 @@ const TradingViewWidget = ({title, scriptUrl, config, height=600, className}: Tr
   const containerRef = UseTradingViewWidget(scriptUrl, config, height)
 
   return (
-    <div className='w-full'>
+    <div className='w-full max-w-full overflow-hidden'>
         {title && <h3 className='font-semibold text-2xl text-gray-950 mb-5'>{title}</h3>}
-        <div className={cn('tradingview-widget-container', className)} ref={containerRef}>
+        <div className={cn('tradingview-widget-container max-w-full overflow-hidden', className)} ref={containerRef}>
             <div className="tradingview-widget-container__widget" style={{ height, width: "100%" }}/>
         </div>
     </div>

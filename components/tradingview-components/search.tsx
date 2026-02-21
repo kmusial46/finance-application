@@ -61,7 +61,7 @@ export default function SearchCommand({ renderAs = 'button', label = 'Add stock'
           {label}
         </span>
       ) : renderAs === 'bar' ? (
-        <div className="relative">
+        <div className="relative w-full max-w-96 px-4 sm:px-0">
           <div className="relative">
             <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <input
@@ -69,13 +69,13 @@ export default function SearchCommand({ renderAs = 'button', label = 'Add stock'
               onChange={(e) => setSearchTerm(e.target.value)}
               onFocus={() => setOpen(true)}
               placeholder="Search stocks..."
-              className="w-96 border border-gray-200 rounded-md px-3 pl-10 py-2 focus:outline-none focus:ring-2 focus:ring-primary bg-white shadow-sm"
+              className="w-full border border-gray-200 rounded-md px-3 pl-10 py-2 focus:outline-none focus:ring-2 focus:ring-primary bg-white shadow-sm"
             />
             {loading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />}
           </div>
 
           {open && (displayStocks && displayStocks.length > 0) && (
-            <div className="absolute left-0 z-50 mt-1 w-96 max-h-60 overflow-auto rounded-md bg-white shadow-lg">
+            <div className="absolute left-0 z-50 mt-1 w-full max-h-60 overflow-auto rounded-md bg-white shadow-lg">
               <ul>
                 {displayStocks.map((stock) => (
                   <li key={stock.symbol}>

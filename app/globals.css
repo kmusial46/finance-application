@@ -106,7 +106,14 @@
 
   /* Home */
   .home {
-    @apply no-scrollbar flex w-full flex-row max-xl:max-h-screen max-xl:overflow-y-scroll;
+    /*
+      On mobile we render a fixed-height header (`.root-layout`, h-16). If we
+      also set the page container to `100vh`, the combined height becomes
+      >100vh and creates extra blank scroll space.
+
+      Subtract 4rem (h-16) on `max-md` where the header is visible.
+    */
+    @apply no-scrollbar flex w-full flex-row max-xl:max-h-screen max-xl:overflow-y-scroll max-md:h-[calc(100vh-4rem)] max-md:max-h-[calc(100vh-4rem)];
   }
 
   .home-content {

@@ -4,8 +4,6 @@ import {
   Sheet,
   SheetClose,
   SheetContent,
-  SheetDescription,
-  SheetHeader,
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
@@ -14,14 +12,21 @@ import Link from "next/link";
 import { sidebarLinks } from "@/constants";
 import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import Footer from "../ui/footer";
 import PlaidLink from "../ui/plaid-link";
 
 const MobileNav = ({ user }: MobileNavProps) => {
   const pathName = usePathname();
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    setOpen(false);
+  }, [pathName]);
+
   return (
     <section className="w-full max-w-[264px]">
-      <Sheet>
+      <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger>
           <Image
             src="/icons/hamburger.svg"
@@ -32,6 +37,7 @@ const MobileNav = ({ user }: MobileNavProps) => {
           />
         </SheetTrigger>
         <SheetContent side="left" className="border-none bg-white">
+          <SheetTitle className="sr-only">Menu</SheetTitle>
           <Link
             href="/"
             className="cursor-pointer flex items-center gap-1 px-4"
@@ -78,14 +84,12 @@ const MobileNav = ({ user }: MobileNavProps) => {
                     </SheetClose>
                   );
                 })}
-
-                USER
               </nav>
             </SheetClose>
             <div className="px-4 pb-4">
               <PlaidLink user={user} />
             </div>
-            <Footer user={user} type='mobile'/>
+            <Footer user={user} type='mobile' onRequestClose={() => setOpen(false)} />
           </div>
         </SheetContent>
       </Sheet>

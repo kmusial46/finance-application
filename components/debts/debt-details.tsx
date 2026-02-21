@@ -9,6 +9,7 @@ import { DialogClose } from '../ui/dialog'
 import { deleteDebt, syncDebtWithPlaid } from '@/lib/actions/bills-debts.actions'
 import { Loader2, RefreshCw, Trash2 } from 'lucide-react'
 import { PaymentDialog } from '@/components/bills/payment-dialog'
+import { useRouter } from 'next/navigation'
 
 interface DebtDetailsProps {
   debt: Debt
@@ -17,6 +18,7 @@ interface DebtDetailsProps {
 const DebtDetails = ({ debt }: DebtDetailsProps) => {
   const [isDeleting, setIsDeleting] = useState(false)
   const [isSyncing, setIsSyncing] = useState(false)
+  const router = useRouter()
 
   const getPayoffEstimate = (debt: Debt) => {
     const balance = Math.max(0, debt.initialAmount - debt.totalAmountPaid);
@@ -55,6 +57,7 @@ const DebtDetails = ({ debt }: DebtDetailsProps) => {
     setIsDeleting(true)
     try {
       await deleteDebt(debt.$id)
+      router.refresh()
       // Close dialog by finding the close button
       document.getElementById('close-dialog-btn')?.click()
     } catch (error) {

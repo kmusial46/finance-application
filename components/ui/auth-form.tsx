@@ -14,6 +14,7 @@ import { Loader2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { signIn, signUp } from "@/lib/actions/user.actions"
 import PlaidLink from "./plaid-link"
+import { cn } from "@/lib/utils"
 
 const AuthForm = ({type}: {type:string}) => {
     const router = useRouter()
@@ -35,8 +36,11 @@ const AuthForm = ({type}: {type:string}) => {
 
 
     const onSubmit = async (data: z.infer<typeof formSchema>) => {
+        if (isLoading) return
         setIsLoading(true)
-        
+
+        const stopLoading = () => setIsLoading(false)
+
         try {
             if(type === 'sign-up') {
                 const userProfile = {
@@ -52,13 +56,13 @@ const AuthForm = ({type}: {type:string}) => {
                 })
 
                 if (newUser?.errors) {
-                    // Set errors on specific fields
                     newUser.errors.forEach((err: { field: string; message: string }) => {
                         form.setError(err.field as any, {
                             type: 'manual',
                             message: err.message
                         })
                     })
+                    stopLoading()
                     return
                 }
 
@@ -67,6 +71,7 @@ const AuthForm = ({type}: {type:string}) => {
                         type: 'manual',
                         message: newUser.error
                     })
+                    stopLoading()
                     return
                 }
 
@@ -78,19 +83,31 @@ const AuthForm = ({type}: {type:string}) => {
                         name: newUser.name ?? `${userProfile.firstName} ${userProfile.lastName}`,
                     })
                 }
+
+                stopLoading()
+                return
             }
+
             if(type === 'sign-in') {
                 const response = await signIn({
                     email: data.email,
                     password: data.password
                 })
 
-                if(response) router.push('/')
+                if(response) {
+                    // Keep button disabled while the route transition happens.
+                    router.push('/')
+                    return
+                }
+
+                stopLoading()
+                return
             }
+
+            stopLoading()
         } catch (error) {
             console.log(error)
-        } finally {
-            setIsLoading(false)
+            stopLoading()
         }
     }
 
@@ -136,7 +153,17 @@ const AuthForm = ({type}: {type:string}) => {
                         <CustomInputForm control={form.control} name='email' label='Email' placeholder='Enter your Email' />
                         <CustomInputForm control={form.control} name='password' label='Password' placeholder='Enter your Password' />
                         <div className="flex flex-col gap-4">
-                            <Button type="submit" className="form-btn" disabled={isLoading}>
+                            <Button
+                                type="submit"
+                                variant="default"
+                                className={cn(
+                                    "w-full",
+                                    "form-btn",
+                                    isLoading && "disabled:opacity-40"
+                                )}
+                                disabled={isLoading}
+                                aria-busy={isLoading}
+                            >
                                 {isLoading ? (
                                     <>
                                         <Loader2 size={20} className="animate-spin"/>

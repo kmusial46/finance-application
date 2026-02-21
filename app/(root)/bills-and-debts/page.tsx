@@ -13,6 +13,8 @@ import { ScanBillsPrompt } from '@/components/bills/scan-bills-prompt';
 import { ScanBillsButton } from '@/components/bills/scan-bills-button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
+export const dynamic = 'force-dynamic';
+
 const BillsAndDebts = async () => {
   const loggedIn = await getLoggedInUser();
   if (!loggedIn) return null;
