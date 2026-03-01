@@ -1,36 +1,144 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Aureon
 
-## Getting Started
+A comprehensive financial management system built with Next.js, allowing users to manage and analyse personal financial data as well as automated calculations and visual dashboards to provide financial insights.
 
-First, run the development server:
+## How to Run
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+1. **Install dependencies**:
+   ```bash
+   npm install
+   # or
+   yarn install
+   # or
+   pnpm install
+   # or
+   bun install
+   ```
+
+2. **Set up Environment Variables**:
+   Create a `.env.local` file in the root directory and add the necessary configuration keys for Appwrite, Plaid, Finnhub, Sentry, and any other third-party services you are using.
+
+3. **Run the development server**:
+   ```bash
+   npm run dev
+   # or
+   yarn dev
+   # or
+   pnpm dev
+   # or
+   bun dev
+   ```
+
+4. **Open the application**:
+   Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+## Folder Structure
+
+High-level overview of the repository layout:
+
+```
+.
+├─ app/                      # Next.js App Router routes/layouts
+│  ├─ (auth)/
+│  │  ├─ sign-in/
+│  │  └─ sign-up/
+│  ├─ (root)/
+│  │  ├─ bills/
+│  │  ├─ bills-and-debts/
+│  │  │  └─ [id]/
+│  │  ├─ debts/
+│  │  ├─ investments/
+│  │  ├─ my-banks/
+│  │  ├─ savings/
+│  │  ├─ settings/
+│  │  ├─ stock-market/
+│  │  ├─ stocks/
+│  │  │  └─ [symbol]/
+│  │  └─ transaction-history/
+│  ├─ api/                   # Route handlers (API endpoints)
+│  │  ├─ account/
+│  │  │  ├─ reauth-token/
+│  │  │  └─ remove/
+│  │  ├─ market/
+│  │  │  └─ quote/
+│  │  └─ sentry-example-api/
+│  └─ sentry-example-page/
+├─ components/               # Reusable UI and feature components
+│  ├─ bills/
+│  ├─ debts/
+│  ├─ goals/
+│  ├─ investments/
+│  ├─ overview/
+│  ├─ sidebars/
+│  ├─ tradingview-components/
+│  ├─ transactions/
+│  └─ ui/                     # shadcn/ui + shared UI primitives
+├─ lib/                      # Shared utilities + service clients
+│  └─ actions/                # Server Actions (Appwrite/Plaid/Finnhub, etc.)
+├─ hooks/                    # Custom React hooks
+├─ constants/                # Shared constants
+├─ types/                    # Shared TypeScript types
+└─ public/                   # Static assets served from /
+   └─ icons/
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Summary of Frameworks and Libraries
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+This project uses a modern web development stack:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Core Framework & Languages
+*   **Next.js (App Router)** (`next`): Core React framework.
+*   **React** (`react`, `react-dom`): UI library.
+*   **TypeScript** (`typescript`): Strongly typed programming language.
 
-## Learn More
+### UI & Styling
+*   **Tailwind CSS** (`tailwindcss`): Utility-first CSS framework.
+*   **shadcn/ui**: Reusable components built on Radix UI and Tailwind.
+*   **Radix UI**: Headless, accessible UI primitives (Dialogs, Tabs, Selects, etc.).
+*   **Lucide React** (`lucide-react`): Icon library.
+*   **Sonner** (`sonner`): Toast notification system.
 
-To learn more about Next.js, take a look at the following resources:
+### Forms & Data Validation
+*   **React Hook Form** (`react-hook-form`): Form state management.
+*   **Zod** (`zod`): Schema validation.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Services & Integrations
+*   **Appwrite** (`node-appwrite`): Backend-as-a-Service (BaaS) for user auth, databases, and secure storage.
+*   **Plaid SDK** (`plaid`): Bank account linking and financial data integration.
+*   **Finnhub API**: Live stock market data and financial news.
+*   **TradingView Widgets**: Embedded interactive financial charts.
+*   **Sentry** (`@sentry/nextjs`): Application monitoring and crash reporting.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Visualisation & Utilities
+*   **Chart.js / React ChartJS 2** (`chart.js`, `react-chartjs-2`): Visualising portfolio and goal metrics.
 
-## Deploy on Vercel
+### Security
+*   **Crypto** (Node.js built-in): Used for AES-256-GCM encryption/decryption of sensitive data like access tokens.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Codebase Architecture & Functionality
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This project is structured with a clear separation between presentation layers and business logic. Below is a breakdown of the functions and components currently implemented.
+
+### Project Composition Summary
+
+| Category | Count | Role in Application |
+| :--- | :--- | :--- |
+| **Action Functions** | 85 | Server Actions, CRUD operations, API logic, and event handlers. |
+| **UI Components** | 83 | Presentational elements (Buttons, Inputs, Radix/Shadcn primitives). |
+| **Pages & Layouts** | 21 | Structural components defining routing and page wrappers. |
+| **Utilities & Hooks** | 22 | Logic for data formatting, encryption, and React lifecycle helpers. |
+| **Total Unique Entities** | 211 | Total exports across the project. |
+
+### Logic Layer: Action Function Deep-Dive
+
+The 85 Action Functions represent the core business logic of the application, categorised by their domain:
+
+| Domain | Action Count | Core Functionality |
+| :--- | :--- | :--- |
+| **Auth & Users** | 10 | Sign in/out, account deletion, and Appwrite session management. |
+| **Banking (Plaid)** | 14 | Plaid Link token exchange, bank syncing, and account retrieval. |
+| **Bills & Debts** | 22 | CRUD operations, payment tracking, and debt payoff calculations. |
+| **Investments** | 13 | Portfolio management and real-time Finnhub market data fetching. |
+| **Goals** | 10 | Savings goal creation, tracking, and transaction history logic. |
+| **Transactions** | 7 | Category mapping and bank-specific transaction fetching. |
+| **System & Security** | 9 | Encryption/Decryption, API route handlers, and URL query logic. |

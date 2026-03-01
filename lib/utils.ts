@@ -58,9 +58,7 @@ export const formatDateTime = (dateString: Date) => {
     timeOptions
   );
 
-  // Prevent the meridiem (AM/PM) from wrapping onto a new line by using a
-  // non-breaking space between the time and the day period. This avoids
-  // cases where only "AM" or "PM" appears on a second line in the UI.
+  // Prevent the meridiem (AM/PM) from wrapping onto a new line
   const formattedDateTimeNoBreak = formattedDateTime
     .replace(" AM", "\u00A0AM")
     .replace(" PM", "\u00A0PM");
@@ -180,24 +178,6 @@ export function countTransactionCategories(
   return aggregatedCategories;
 }
 
-export function extractCustomerIdFromUrl(url: string) {
-  // Split the URL string by '/'
-  const parts = url.split("/");
-
-  // Extract the last part, which represents the customer ID
-  const customerId = parts[parts.length - 1];
-
-  return customerId;
-}
-
-export function encryptId(id: string) {
-  return btoa(id);
-}
-
-export function decryptId(id: string) {
-  return atob(id);
-}
-
 export const getTransactionStatus = (date: Date) => {
   const today = new Date();
   const twoDaysAgo = new Date(today);
@@ -207,7 +187,6 @@ export const getTransactionStatus = (date: Date) => {
 };
 
 // UK phone number validation - supports formats like:
-// 07123456789, +447123456789, 0207123456, 01234567890, etc.
 const isValidUKPhone = (value: string) => {
   // Remove spaces, dashes, and parentheses
   const cleaned = value.replace(/[\s\-()]/g, '');
@@ -233,29 +212,6 @@ export const authFormSchema = (type: string) => z.object({
         .min(10, "Phone number must be at least 10 digits.")
         .refine(isValidUKPhone, { message: "Please enter a valid UK phone number (e.g., 07123456789 or +447123456789)." }),
 });
-
-const isNumericString = (value: string) => {
-  const normalized = value.replace(/,/g, "").trim();
-  if (!normalized) return false;
-  const parsed = Number(normalized);
-  return Number.isFinite(parsed) && parsed > 0;
-};
-
-export const investmentFormSchema = z
-  .object({
-    query: z
-      .string()
-      .trim()
-      .min(2, "Enter at least 2 characters.")
-      .max(80, "Query must be 80 characters or fewer."),
-    shareCount: z
-      .string()
-      .trim()
-      .min(1, "Share count is required.")
-      .refine(isNumericString, "Enter a valid share count greater than 0.")
-      .transform((value) => value.replace(/,/g, "")),
-  })
-  .strict();
 
 export const getDateRange = (days: number) => {
   const toDate = new Date();
