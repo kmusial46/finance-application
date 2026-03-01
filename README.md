@@ -59,8 +59,6 @@ High-level overview of the repository layout:
 │  │  ├─ account/
 │  │  │  ├─ reauth-token/
 │  │  │  └─ remove/
-│  │  ├─ market/
-│  │  │  └─ quote/
 │  │  └─ sentry-example-api/
 │  └─ sentry-example-page/
 ├─ components/               # Reusable UI and feature components
@@ -68,7 +66,6 @@ High-level overview of the repository layout:
 │  ├─ debts/
 │  ├─ goals/
 │  ├─ investments/
-│  ├─ overview/
 │  ├─ sidebars/
 │  ├─ tradingview-components/
 │  ├─ transactions/
